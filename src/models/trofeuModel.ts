@@ -2,30 +2,32 @@ class Trofeu {
     private idTrofeu: number;
     private nome: string;
     private descricao: string;
+    private guia: string;
     private tipo: string;
     private oculto: boolean;
     private conquistado: boolean;
     private taxaConquistado: number;
     private raridade: number;
     private iconeUrl: string;
-    private categoria: string;
+    private tags: string [];
 
     constructor
     (
-        idTrofeu: number, nome: string, descricao: string, tipo: string,oculto: boolean,
-        conquistado: boolean, taxaConquistado: number, raridade: number, iconeUrl: string, categoria: string
+        idTrofeu: number, nome: string, descricao: string,  guia: string, tipo: string,oculto: boolean,
+        conquistado: boolean, taxaConquistado: number, raridade: number, iconeUrl: string, tags: string []
     ){
 
         this.idTrofeu = idTrofeu;
         this.nome = nome;
         this.descricao = descricao;
+        this.guia = guia;
         this.tipo = tipo;
         this.oculto = oculto;
         this.conquistado = conquistado;
         this.taxaConquistado = taxaConquistado;
         this.raridade = raridade;
         this.iconeUrl = iconeUrl;
-        this.categoria = categoria;
+        this.tags = tags;
     }
     getIdTrofeu(): number {
         return this.idTrofeu;
@@ -35,6 +37,9 @@ class Trofeu {
     }
     getDescricao(): string {
         return this.descricao;
+    }
+    getGuia(): string {
+        return this.guia;
     }
     getTipo(): string {
         return this.tipo;
@@ -54,8 +59,8 @@ class Trofeu {
     getIconeUrl(): string {
         return this.iconeUrl;
     }
-    getCategoria(): string {
-        return this.categoria;
+    getTags(): string [] {
+        return this.tags;
     }
 
 
@@ -67,6 +72,9 @@ class Trofeu {
     }
     setDescricao(descricao: string): void {
         this.descricao = descricao;
+    }
+    setGuia(guia: string): void {
+        this.guia = guia;
     }
     setTipo(tipo: string): void {
         this.tipo = tipo;
@@ -86,8 +94,8 @@ class Trofeu {
     setIconeUrl(iconeUrl: string): void {
         this.iconeUrl = iconeUrl;
     }
-    setCategoria(categoria: string): void {
-        this.categoria = categoria;
+    setTags(tags: string []): void {
+        this.tags = tags;
     }
 
 

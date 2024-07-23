@@ -2,13 +2,17 @@ class Usuario {
     private idUsuario: number;
     private login: string;
     private senha: string;
+    private nascimento: Date;
+    private pais: string;
     private email: string;
     private iconeUrl: string;
 
-    constructor(idUsuario: number, login: string, senha: string, email: string, iconeUrl: string) {
+    constructor(idUsuario: number, login: string, senha: string, nascimento: Date, pais: string, email: string, iconeUrl: string) {
         this.idUsuario = idUsuario;
         this.login = login;
         this.senha = senha;
+        this.nascimento = nascimento;
+        this.pais = pais;
         this.email = email;
         this.iconeUrl = iconeUrl;
     }
@@ -20,6 +24,12 @@ class Usuario {
     }
     getSenha(): string {
         return this.senha;
+    }
+    getNascimento(): Date {
+        return this.nascimento;
+    }
+    getPais(): string {
+        return this.pais;
     }
     getEmail(): string {
         return this.email;
@@ -37,6 +47,12 @@ class Usuario {
     }
     setSenha(senha: string): void {
         this.senha = senha;
+    }
+    setNascimento(nascimento: Date): void {
+        this.nascimento = nascimento;
+    }
+    setPais(pais: string): void {
+        this.pais = pais;
     }
     setEmail(email: string): void {
         this.email = email;

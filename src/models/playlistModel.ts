@@ -1,14 +1,13 @@
 import Jogo from "./jogoModel";
 
 class Playlist {
-    private idPlaylist: number;
+    private idPlaylist: number = 0;
     private categoria: string;
     private plataforma: string;
     private jogos: Jogo[];
     private idUsuario: number;
 
-    constructor(idPlaylist: number, categoria: string, plataforma: string, jogos: Jogo[], idUsuario: number) {
-        this.idPlaylist = idPlaylist;
+    constructor( categoria: string, plataforma: string, jogos: Jogo[], idUsuario: number) {
         this.categoria = categoria;
         this.plataforma = plataforma;
         this.jogos = jogos;
@@ -31,9 +30,6 @@ class Playlist {
     }
 
 
-    setIdPlaylist(idPlaylist: number): void {
-        this.idPlaylist = idPlaylist;
-    }
     setCategoria(categoria: string): void {
         this.categoria = categoria;
     }
