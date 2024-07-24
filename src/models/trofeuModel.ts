@@ -9,13 +9,25 @@ class Trofeu {
     private taxaConquistado: number;
     private raridade: number;
     private iconeUrl: string;
-    private tags: string [];
+    private tags: string[];
+
+    constructor(idTrofeu: number,nome: string,descricao: string,guia: string,tipo: string,oculto: boolean,iconeUrl: string,tags: string[]);
+    constructor(idTrofeu: number,nome: string,descricao: string,guia: string,tipo: string,oculto: boolean,iconeUrl: string,tags: string[],conquistado: boolean,taxaConquistado: number,raridade: number);
 
     constructor
-    (
-        idTrofeu: number, nome: string, descricao: string,  guia: string, tipo: string,oculto: boolean,
-        conquistado: boolean, taxaConquistado: number, raridade: number, iconeUrl: string, tags: string []
-    ){
+        (
+            idTrofeu: number,
+            nome: string,
+            descricao: string,
+            guia: string,
+            tipo: string,
+            oculto: boolean,
+            iconeUrl: string,
+            tags: string[],
+            conquistado?: boolean,
+            taxaConquistado?: number,
+            raridade?: number,
+        ) {
 
         this.idTrofeu = idTrofeu;
         this.nome = nome;
@@ -23,11 +35,11 @@ class Trofeu {
         this.guia = guia;
         this.tipo = tipo;
         this.oculto = oculto;
-        this.conquistado = conquistado;
-        this.taxaConquistado = taxaConquistado;
-        this.raridade = raridade;
         this.iconeUrl = iconeUrl;
         this.tags = tags;
+        this.conquistado = conquistado || false;
+        this.taxaConquistado = taxaConquistado || 0;
+        this.raridade = raridade || 0;
     }
     getIdTrofeu(): number {
         return this.idTrofeu;
@@ -59,7 +71,7 @@ class Trofeu {
     getIconeUrl(): string {
         return this.iconeUrl;
     }
-    getTags(): string [] {
+    getTags(): string[] {
         return this.tags;
     }
 
@@ -94,7 +106,7 @@ class Trofeu {
     setIconeUrl(iconeUrl: string): void {
         this.iconeUrl = iconeUrl;
     }
-    setTags(tags: string []): void {
+    setTags(tags: string[]): void {
         this.tags = tags;
     }
 

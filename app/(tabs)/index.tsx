@@ -8,11 +8,10 @@ const usuarioController = new UsuarioController();
 export default function HomeScreen() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
-  const token = "";
 
   const carregarPlaylist = async () => {
     try {
-      const loadedPlaylists: Playlist[] | undefined = await usuarioController.teste(token);
+      const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
       console.log("Esta é a playlist carregada: " + loadedPlaylists);
       if (loadedPlaylists) {
         setPlaylists(loadedPlaylists);
@@ -22,7 +21,6 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Erro ao carregar a playlist:", error);
-      console.error(token);
     }
   };
 
