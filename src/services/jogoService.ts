@@ -175,14 +175,15 @@ class JogoService {
 
                 const jogo = new Jogo(
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
-                    10,//tempo para platinar, coloquei um tempo aleatorio
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
+                    10,//tempo para platinar, coloquei um tempo aleatorio por não ter no momento como pegar o tempo real
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                     false,
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
                     trofeus,
-                    "",//url do guia de trofeus
+                    "URL DO GUIA DE TROFÈUS",//url do guia de trofeus
                     0,//dificuldade
-                    1,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
+                    0,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
                     npwr,
                 );
 
@@ -204,6 +205,7 @@ class JogoService {
             if (await this.verificarJogoNoFirebase(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name) == false) {
                 const jogo = new Jogo(
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
                     10,//tempo para platinar, coloquei um tempo aleatorio
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                     false,
@@ -245,6 +247,7 @@ class JogoService {
                             let trofeus = await this.trofeuService.obterTrofeusPeloNpwr(todosJogosResponse.trophyTitles[c].npCommunicationId);
                             const jogo = new Jogo(
                                 todosJogosResponse.trophyTitles[c].trophyTitleName,
+                                todosJogosResponse.trophyTitles[c].trophyTitlePlatform,
                                 10,//tempo para platinar, coloquei um tempo aleatorio
                                 todosJogosResponse.trophyTitles[c].trophyTitleIconUrl,
                                 false,
@@ -268,6 +271,7 @@ class JogoService {
             //criando o jogo do tipo Bundle, com os jogos que pertecem ao bundle, cada jogo contendo a lista de troféus
             const bundle = new Jogo(
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
+                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
                 10,//tempo para platinar, coloquei um tempo aleatorio
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                 true,

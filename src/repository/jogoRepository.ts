@@ -17,6 +17,7 @@ interface TrofeuData {
 
 interface JogoData {
     nome: string;
+    plataforma: string;
     tempoParaPlatinar: number;
     iconeUrl: string;
     bundle: boolean;
@@ -29,6 +30,7 @@ interface JogoData {
 }
 interface BundleData {
     nome: string;
+    plataforma: string;
     iconeUrl: string;
     tempoParaPlatinar: number;
     bundle: boolean;
@@ -163,6 +165,7 @@ class JogoRepository {
 
                             const jogoDoBundle = new Jogo(
                                 jogo.nome,
+                                jogo.plataforma,
                                 jogo.tempoParaPlatinar,
                                 jogo.iconeUrl,
                                 false,
@@ -178,6 +181,7 @@ class JogoRepository {
 
                         const bundleJogo = new Jogo(
                             dataBundle.nome,
+                            dataBundle.plataforma,
                             dataBundle.tempoParaPlatinar,
                             dataBundle.iconeUrl,
                             true,
@@ -209,6 +213,7 @@ class JogoRepository {
 
                     const jogo = new Jogo(
                         dataJogo.nome,
+                        dataJogo.plataforma,
                         dataJogo.tempoParaPlatinar,
                         dataJogo.iconeUrl,
                         dataJogo.bundle,
