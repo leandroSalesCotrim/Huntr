@@ -12,7 +12,6 @@ export default function HomeScreen() {
   const carregarPlaylist = async () => {
     try {
       const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
-      console.log("Esta é a playlist carregada: " + loadedPlaylists);
       if (loadedPlaylists) {
         setPlaylists(loadedPlaylists);
         setSelectedPlaylist(loadedPlaylists[0]); // Seleciona a primeira playlist por padrão

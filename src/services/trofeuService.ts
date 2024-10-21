@@ -8,7 +8,6 @@ class TrofeuService{
     async obterTrofeusPeloNpwr(npwr: string): Promise<Trofeu[]> {
         try {
             let authorization = await AsyncStorage.getItem('authToken');
-            console.log()
             const trofeus: Array<Trofeu> = []
             if (authorization) {
                 let authToken = JSON.parse(authorization);

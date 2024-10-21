@@ -4,10 +4,10 @@ import axios from 'axios';
 import Jogo from '../models/jogoModel';
 import { RecentlyPlayedGamesResponse, getUserTitles, UserTitlesResponse, getRecentlyPlayedGames } from 'psn-api';
 import TrofeuService from './trofeuService';
-
+import JogoRepository from '../repository/jogoRepository';
 
 // Definir uma interface para o objeto closestMatch
-interface GuideMatch {
+interface GuiaResponse {
     title: string;
     author: string;
     views: string;
@@ -16,9 +16,28 @@ interface GuideMatch {
 
 class JogoService {
     private trofeuService: TrofeuService;
+    private jogoRepository: JogoRepository;
     constructor() {
         this.trofeuService = new TrofeuService();
+        this.jogoRepository = new JogoRepository();
     }
+
+    async verificarJogoNoFirebase(nomeJogo: string): Promise<boolean> {
+        try {
+            let jogoExiste = await this.jogoRepository.verificarJogoExiste(nomeJogo);
+            if (jogoExiste) {
+                console.log('Jogo encontrando no banco');
+                return true;
+            } else {
+                console.log('Jogo não existe no banco ainda');
+                return false;
+            }
+        } catch (error) {
+            console.error('Erro ao verificar e inserir jogo: ', error);
+            throw error;
+        }
+    }
+
 
     async resgatarUrlDoGuia(): Promise<string | undefined> {
         try {
@@ -30,7 +49,7 @@ class JogoService {
             const html = response.data;
             const $: CheerioAPI = cheerio.load(html);
 
-            let closestMatch: GuideMatch | null = null; // Usar a interface GuideMatch
+            let closestMatch: GuiaResponse | null = null; // Usar a interface GuideMatch
             let smallestDistance = Infinity;
 
             $('.guide-page-info').each((i: number, element: CheerioElement) => {
@@ -50,7 +69,7 @@ class JogoService {
 
             if (closestMatch !== null) { // Verificação explícita de nulidade
                 // Type assertion para garantir que closestMatch é do tipo GuideMatch
-                const match: GuideMatch = closestMatch;
+                const match: GuiaResponse = closestMatch;
 
                 console.log(`Closest match to ${gameTitle}: ${match.title}`);
                 console.log(`Author: ${match.author}`);
@@ -72,7 +91,6 @@ class JogoService {
             console.log("valor recebido no obterNpwrJogos: " + gameSerialId)
             // Dividir a string usando o caractere de sublinhado
             const [prefixo] = gameSerialId.split('_');
-            console.log(prefixo)
             // Dividir o prefixo em letras e números
             const serialRegionMatch = prefixo.match(/[A-Za-z]+/);
             const serialNumberMatch = prefixo.match(/\d+/);
@@ -115,7 +133,7 @@ class JogoService {
                 limit: 5,
                 categories: ["ps4_game", "ps5_native_game"]
             });
-            console.log("Exibindo jogados recentemente" + JSON.stringify(response));
+            // console.log("Exibindo jogados recentemente" + JSON.stringify(response));
             return response;
         } catch (error) {
             console.error("Erro ao tentar obter jogados recentemente");
@@ -149,23 +167,29 @@ class JogoService {
         indexJogo: number
     ): Promise<Jogo | undefined> {
         try {
-            //precisa ser definido antes os trofeús do jogo para poder preencher corretamente a classe jogo
-            let trofeus = await this.trofeuService.obterTrofeusPeloNpwr(npwr);
 
-            const jogo = new Jogo(
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
-                10,//tempo para platinar, coloquei um tempo aleatorio
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
-                false,
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
-                trofeus,
-                "",//url do guia de trofeus
-                0,//dificuldade
-                1,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
-                npwr,
-            );
+            if (await this.verificarJogoNoFirebase(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name) == false) {
 
-            return jogo;
+                //precisa ser definido antes os trofeús do jogo para poder preencher corretamente a classe jogo
+                let trofeus = await this.trofeuService.obterTrofeusPeloNpwr(npwr);
+
+                const jogo = new Jogo(
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
+                    10,//tempo para platinar, coloquei um tempo aleatorio
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
+                    false,
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
+                    trofeus,
+                    "",//url do guia de trofeus
+                    0,//dificuldade
+                    1,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
+                    npwr,
+                );
+
+                await this.jogoRepository.inserirJogoNoBanco(jogo);
+                return jogo;
+            }
+
         } catch (error) {
             console.error(error);
             return undefined;
@@ -177,21 +201,23 @@ class JogoService {
         indexJogo: number
     ): Promise<Jogo | undefined> {
         try {
+            if (await this.verificarJogoNoFirebase(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name) == false) {
+                const jogo = new Jogo(
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
+                    10,//tempo para platinar, coloquei um tempo aleatorio
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
+                    false,
+                    jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
+                    [],
+                    "",//url do guia de trofeus
+                    0,//dificuldade
+                    1,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
+                    "Nao encontrado",
+                );
 
-            const jogo = new Jogo(
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
-                10,//tempo para platinar, coloquei um tempo aleatorio
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
-                false,
-                jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
-                [],
-                "",//url do guia de trofeus
-                0,//dificuldade
-                1,//progresso PRECISO VALIDAR COMO RECEBER O PROGRESSO AQUI POIS ELE ESTA DISPONIVEL NA LISTA COMPLETA DE JOGOS
-                "Nao encontrado",
-            );
-
-            return jogo;
+                await this.jogoRepository.inserirJogoNoBanco(jogo);
+                return jogo;
+            }
         } catch (error) {
             console.error(error);
             return undefined;
@@ -209,34 +235,38 @@ class JogoService {
             // do jogador na PSN para encontrar as informações necessárias para a criação da classe de Jogo e Trofeu
             const jogosBundle: Array<Jogo> = [];
 
-            for (let j = 0; j < jogosNpwr.length; j++) {
-                for (let c = 0; c < todosJogosResponse.totalItemCount; c++) {
-                    //se for encontrado um jogo na lista completa com o mesmo id do bundle, será criado uma instancia
-                    //do jogo para posteriormente inserir no banco
-                    if (todosJogosResponse.trophyTitles[c].npCommunicationId.replace(/^NPWR(\d{5}).*/, 'NPWR-$1').includes(jogosNpwr[j])) {
+            if (await this.verificarJogoNoFirebase(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name) == false) {
+                for (let j = 0; j < jogosNpwr.length; j++) {
+                    for (let c = 0; c < todosJogosResponse.totalItemCount; c++) {
+                        //se for encontrado um jogo na lista completa com o mesmo id do bundle, será criado uma instancia
+                        //do jogo para posteriormente inserir no banco
+                        if (todosJogosResponse.trophyTitles[c].npCommunicationId.replace(/^NPWR(\d{5}).*/, 'NPWR-$1').includes(jogosNpwr[j])) {
 
-                        let trofeus = await this.trofeuService.obterTrofeusPeloNpwr(todosJogosResponse.trophyTitles[c].npCommunicationId);
-                        const jogo = new Jogo(
-                            todosJogosResponse.trophyTitles[c].trophyTitleName,
-                            10,//tempo para platinar, coloquei um tempo aleatorio
-                            todosJogosResponse.trophyTitles[c].trophyTitleIconUrl,
-                            false,
-                            titleId,
-                            trofeus,
-                            "",//url do guia de trofeus
-                            0,//dificuldade
-                            todosJogosResponse.trophyTitles[c].progress,//progresso
-                            jogosNpwr[j],
-                        );
+                            let trofeus = await this.trofeuService.obterTrofeusPeloNpwr(todosJogosResponse.trophyTitles[c].npCommunicationId);
+                            const jogo = new Jogo(
+                                todosJogosResponse.trophyTitles[c].trophyTitleName,
+                                10,//tempo para platinar, coloquei um tempo aleatorio
+                                todosJogosResponse.trophyTitles[c].trophyTitleIconUrl,
+                                false,
+                                "",
+                                trofeus,
+                                "",//url do guia de trofeus
+                                0,//dificuldade
+                                todosJogosResponse.trophyTitles[c].progress,//progresso
+                                jogosNpwr[j],
+                            );
 
-                        jogosBundle.push(jogo);
+                            if (await this.verificarJogoNoFirebase(todosJogosResponse.trophyTitles[c].trophyTitleName) == false) {
+                                await this.jogoRepository.inserirJogoNoBanco(jogo);
+                            }
+                            jogosBundle.push(jogo);
+                        }
                     }
-
                 }
             }
 
             //criando o jogo do tipo Bundle, com os jogos que pertecem ao bundle, cada jogo contendo a lista de troféus
-            const jogo = new Jogo(
+            const bundle = new Jogo(
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
                 10,//tempo para platinar, coloquei um tempo aleatorio
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
@@ -244,8 +274,9 @@ class JogoService {
                 titleId,
                 jogosBundle,
             );
+            await this.jogoRepository.inserirBundleNoBanco(bundle);
 
-            return jogo;
+            return bundle;
 
         } catch (error) {
             console.error(error);

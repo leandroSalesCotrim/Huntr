@@ -16,12 +16,9 @@ class UsuarioService {
 
     async obterPsnAuthorization(sso: string): Promise<void> {
         try {
-            console.log(sso);
             let accessCode = await exchangeNpssoForCode(sso);
-            console.log(accessCode);
 
             let authorization = await exchangeCodeForAccessToken(accessCode);
-            console.log(authorization);
 
             await AsyncStorage.setItem('authToken', JSON.stringify(authorization));
             let authorizationTeste = await AsyncStorage.getItem('authToken');
@@ -60,7 +57,7 @@ class UsuarioService {
                     this.atualizarToken(authToken);
                 } else if ('trophyTitles' in userTitlesResponse) {
                     console.log("Requisição realizada com sucesso. Token valido!");
-                    console.log("Retorno da validação de token: " + JSON.stringify(userTitlesResponse));
+                    // console.log("Retorno da validação de token: " + JSON.stringify(userTitlesResponse));
                 }
             }
         } catch (error) {

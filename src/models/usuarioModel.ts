@@ -1,5 +1,5 @@
 class Usuario {
-    private idUsuario: number;
+    private idUsuario?: number;
     private login: string;
     private senha: string;
     private nascimento: Date;
@@ -7,8 +7,7 @@ class Usuario {
     private email: string;
     private iconeUrl: string;
 
-    constructor(idUsuario: number, login: string, senha: string, nascimento: Date, pais: string, email: string, iconeUrl: string) {
-        this.idUsuario = idUsuario;
+    constructor( login: string, senha: string, nascimento: Date, pais: string, email: string, iconeUrl: string) {
         this.login = login;
         this.senha = senha;
         this.nascimento = nascimento;
@@ -16,7 +15,7 @@ class Usuario {
         this.email = email;
         this.iconeUrl = iconeUrl;
     }
-    getIdUsuario(): number {
+    getIdUsuario(): number | undefined {
         return this.idUsuario;
     }
     getLogin(): string {

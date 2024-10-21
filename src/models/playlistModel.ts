@@ -1,7 +1,7 @@
 import Jogo from "./jogoModel";
 
 class Playlist {
-    private idPlaylist: number = 0;
+    private idPlaylist?: number;
     private categoria: string;
     private plataforma: string;
     private jogos: Jogo[];
@@ -13,7 +13,7 @@ class Playlist {
         this.jogos = jogos;
         this.idUsuario = idUsuario;
     }
-    getIdPlaylist(): number {
+    getIdPlaylist(): number | undefined {
         return this.idPlaylist;
     }
     getCategoria(): string {

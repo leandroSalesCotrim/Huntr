@@ -1,16 +1,15 @@
 class Adm {
-    private idAdm: number;
+    private idAdm?: number;
     private login: string;
     private senha: string;
     private email: string;
 
-    constructor(idAdm: number, login: string, senha: string, email: string) {
-        this.idAdm = idAdm;
+    constructor( login: string, senha: string, email: string) {
         this.login = login;
         this.senha = senha;
         this.email = email;
     }
-    getIdAdm(): number {
+    getIdAdm(): number | undefined{
         return this.idAdm;
     }
     getLogin(): string {

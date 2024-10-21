@@ -2,13 +2,14 @@ import Trofeu from "./trofeuModel";
 
 
 class Jogo {
-    private npwr: string = ""; //este vai ser o atributo de identificação do jogo, pois mesmo que o jogo possua diferentes
-    // versões/serialId em diferentes regiões a lista de troféus aparenta ser sempre a mesma, por exemplo, minecraft na versão
-    //americana (CUSA) e japonesa (PCJS) compartilham da mesma lista de troféus NPWR_05706
-    //não sei se isso pode ser influenciado também pela conta da psn em que vc joga o jogo
+    private idJogo?: number;// vai ser necessário este id pois alguns jogos não possuem o serial, e alguns jogos possuem npwr que são
+    // mais dificeis/impossiveis de conseguir sem uma boa base de dados
+    private npwr: string = ""; //mesmo que o jogo possua diferentes versões/serialId em diferentes regiões a lista de troféus
+    // aparenta ser sempre a mesma, por exemplo, minecraft na versão americana (CUSA) e japonesa (PCJS) compartilham da mesma
+    // lista de troféus NPWR_05706 não sei se isso pode ser influenciado também pela conta da psn em que vc joga o jogo
 
     private serialJogo: string = "";
-    // vai ser o serial, cada versão do jogo possui um seria do produto, que pode mudar dependendo se for midia fisica
+    // cada versão do jogo possui um serial do produto, que pode mudar dependendo se for midia fisica
     // digital, e principalmente pode ser afetado pela região do produto
     // alguns jogos não possuem este serial por pertencerem a um bundle como acontece como devil may cry 1 2 3 da HD collection,
     // neste caso o serial seria o mesmo do bundle, o que não é uma regra como acontece na colletanea de naruto ultimate ninja storm,
@@ -21,6 +22,7 @@ class Jogo {
     private trofeus: Trofeu[] = [];
     private iconeUrl: string;
     private guiaUrl: string = "";
+    private plataforma: string = "";
     private bundle: boolean;
     private jogos: Jogo[] = [];
     private dificuldade: number = 0;
@@ -28,12 +30,13 @@ class Jogo {
 
 
     // Assinaturas de sobrecarga dos construtores
-    constructor( nome: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, jogos: Jogo[]);
-    constructor( nome: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, trofeus: Trofeu[], guiaUrl: string, dificuldade: number, progresso: number, npwr: string);
+    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, jogos: Jogo[]);
+    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, trofeus: Trofeu[], guiaUrl: string, dificuldade: number, progresso: number, npwr: string);
     //se for do tipo bundle vai ser assim
     // Construtor real
     constructor(
         nome: string,
+        plataforma: string,
         tempoParaPlatinar: number,
         iconeUrl: string,
         bundle: boolean,
@@ -45,6 +48,7 @@ class Jogo {
         npwr?: string,
     ) {
         this.nome = nome;
+        this.plataforma = plataforma || "";
         this.tempoParaPlatinar = tempoParaPlatinar;
         this.iconeUrl = iconeUrl;
         this.bundle = bundle;
@@ -69,7 +73,9 @@ class Jogo {
             }
         }
     }
-
+    getIdJogo(): number | undefined {
+        return this.idJogo;
+    }
     getSerialJogo(): string {
         return this.serialJogo;
     }
@@ -91,6 +97,9 @@ class Jogo {
     getGuiaUrl(): string {
         return this.guiaUrl;
     }
+    getPlataforma(): string {
+        return this.plataforma;
+    }
     getBundle(): boolean {
         return this.bundle;
     }
@@ -105,8 +114,9 @@ class Jogo {
     }
 
 
-
-
+    setIdJogo(idJogo: number): void {
+        this.idJogo = idJogo;
+    }
     setSerialJogo(serialJogo: string): void {
         this.serialJogo = serialJogo;
     }
@@ -130,6 +140,9 @@ class Jogo {
     }
     setGuiaUrl(guiaUrl: string): void {
         this.guiaUrl = guiaUrl;
+    }
+    setPlataforma(plataforma: string): void {
+        this.plataforma = plataforma;
     }
     setBundle(bundle: boolean): void {
         this.bundle = bundle;
