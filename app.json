@@ -4,7 +4,7 @@
     "slug": "Huntr",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/HunTr_logo2.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -27,7 +27,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/Inter-regular.ttf"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

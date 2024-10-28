@@ -1,7 +1,7 @@
 import { collection, getDocs, updateDoc, query, where, addDoc, doc, endAt, orderBy, startAt } from 'firebase/firestore';
 import { db } from './src/database/firebaseConfig';
 import Jogo from './src/models/jogoModel';
-import cheerio, { CheerioAPI, Element as CheerioElement } from 'cheerio';
+import cheerio from 'cheerio';
 import levenshtein from 'fast-levenshtein';
 import { TrophyTitle, getRecentlyPlayedGames, getUserTitles, UserTitlesResponse, RecentlyPlayedGamesResponse, TitleTrophiesResponse, UserTrophiesEarnedForTitleResponse, getTitleTrophies, getUserTrophiesEarnedForTitle, exchangeNpssoForCode, exchangeCodeForAccessToken, AuthTokensResponse, } from "psn-api";
 import Trofeu from './src/models/trofeuModel';
