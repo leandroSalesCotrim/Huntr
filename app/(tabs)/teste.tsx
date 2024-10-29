@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native';
 export default function Teste() {
   return (
     <View style={styles.teste}>
-      <Text style={styles.text}>About screen</Text>
+      <Text style={styles.text}>Tela de teste</Text>
     </View>
   );
 }

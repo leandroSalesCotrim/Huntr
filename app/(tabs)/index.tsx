@@ -52,7 +52,7 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.btn} onPress={() => console.log('Botão 1 pressionado')}>
-            <Link href="/teste" style={styles.btnText}>
+            <Link href="/cadastro" style={styles.btnText}>
               Criar uma nova conta
             </Link>
           </TouchableOpacity>

@@ -1,19 +1,15 @@
-// Login.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import WavesBackground from './components/WavesBackground';
-import { Link, SplashScreen } from 'expo-router';
+import { SplashScreen } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../NavigationTypes';
+import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import CustomModal from './components/Notificacao'; // Importando seu CustomModal
 import { StackNavigationProp } from '@react-navigation/stack';
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter'
+import { RootStackParamList } from '../NavigationTypes';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, '(tabs)/index'>;
-// Previne a tela de splash de desaparecer automaticamente
+
 SplashScreen.preventAutoHideAsync();
 
 const HomeScreen: React.FC = () => {
@@ -22,10 +18,10 @@ const HomeScreen: React.FC = () => {
     Inter_700Bold,
   });
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
-
-
-  // Usar useEffect para ocultar a splash screen quando as fontes terminarem de carregar
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
@@ -33,43 +29,52 @@ const HomeScreen: React.FC = () => {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
+    return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  const handleLogin = () => {
-    // Lógica de login
+  const handleCadastro = () => {
+    // Lógica de cadastro
+    setModalMessage('Cadastro realizado com sucesso! Realize o login para continuar.'); // Mensagem de sucesso
+    setModalVisible(true); // Mostra a modal
 
-    navigation.navigate('(tabs)/dashboard');
+    // Redireciona para a tela de login após 8 segundos
+    setTimeout(() => {
+      setModalVisible(false);
+      navigation.navigate('(tabs)/login');
 
+    }, 6000); // Tempo em milissegundos
   };
-  
-  return (
 
+  return (
     <View style={styles.container}>
       <WavesBackground />
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.btnVoltar}>
-        <Image source={require('../../assets/images/botao-x.png')} style={styles.imgBtnVoltar}/>
+        <Image source={require('../../assets/images/botao-x.png')} style={styles.imgBtnVoltar} />
       </TouchableOpacity>
       <Image source={require('../../assets/images/HunTr_logo2.png')} style={styles.logo} />
 
-      <View style={styles.containerLogin}>
-        <Text style={styles.titulo} >Realizar login</Text>
-        <Text style={styles.subTitulo}>O sonho recomeça. A caçada pelos troféus te espera.</Text>
+      <View style={styles.containerCadastro}>
+        <Text style={styles.titulo}>Cadastrar conta HunTr</Text>
+        <Text style={styles.subTitulo}>Abra os olhos, caçador. É hora de conquistar novos troféus.</Text>
 
         <View style={styles.divInputs}>
-          <TextInput style={styles.input} textContentType='nickname' placeholder='Login' placeholderTextColor={"#FFFFFF80"}></TextInput>
-          <TextInput style={styles.input} textContentType='password' placeholder='Senha' placeholderTextColor={"#FFFFFF80"}></TextInput>
-
-          <TouchableOpacity style={styles.btn} onPress={handleLogin}>
-            <Text style={styles.btnText}>
-              Realizar login
-            </Text>
-          </TouchableOpacity>
+          <TextInput style={styles.input} textContentType='nickname' placeholder='Login' placeholderTextColor={"#FFFFFF80"} />
+          <TextInput style={styles.input} textContentType='emailAddress' placeholder='Email' placeholderTextColor={"#FFFFFF80"} />
+          <TextInput style={styles.input} textContentType='password' placeholder='Senha' secureTextEntry={true} placeholderTextColor={"#FFFFFF80"} />
+          <TextInput style={styles.input} textContentType='password' placeholder='Confirmar senha' secureTextEntry={true} placeholderTextColor={"#FFFFFF80"} />
         </View>
 
-
-
+        <TouchableOpacity style={styles.btn} onPress={handleCadastro}>
+          <Text style={styles.btnText}>Realizar cadastro</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Uso da CustomModal */}
+      <CustomModal
+        visible={modalVisible}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)} // Fechar a modal ao pressionar o botão "Fechar"
+      />
     </View>
   );
 };
@@ -97,9 +102,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 40
   },
-  containerLogin: {
+  containerCadastro: {
     width: "100%",
-    height: "47%",
+    height: "62%",
     backgroundColor: "#18191DE6",
     display: "flex",
     justifyContent: "center",
@@ -110,7 +115,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     fontFamily: 'Inter_700Bold',
-    color: "#E2E3E5"
+    color: "#E2E3E5",
   },
   subTitulo: {
     fontSize: 12,
@@ -120,8 +125,8 @@ const styles = StyleSheet.create({
   },
   divInputs: {
     width: "100%",
-    height: "60%",
-    marginTop: 30,
+    height: "40%",
+    marginTop: 50,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center"
@@ -138,7 +143,8 @@ const styles = StyleSheet.create({
   btn: {
     backgroundColor: "#2A3952",
     width: "60%",
-    height: "20%",
+    height: "10%",
+    marginTop: 50,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
@@ -150,7 +156,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18
   },
-
 });
 
 export default HomeScreen;
