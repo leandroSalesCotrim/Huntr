@@ -5,7 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 const Playlists = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Profile Screen</Text>
+      <Text style={styles.text}>Playlist screen</Text>
     </View>
   );
 };
