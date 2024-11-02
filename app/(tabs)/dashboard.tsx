@@ -64,25 +64,23 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           return (
             <View key={route.name} style={orderedIndex === 1 ? styles.iconCenterContainer : styles.iconWrapper}>
               {isFocused && ( // Verifica se o ícone está focado
-                <Svg viewBox="0 0 428 150" style={styles.svgFundoIcone}>
-                  <Defs>
-                    <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                      <Stop offset="0%" stopColor="#08BFB5" stopOpacity="0" />
-                      <Stop offset="60%" stopColor="#08BFB599" />
-                    </LinearGradient>
-                  </Defs>
+                  <Svg viewBox="0 0 428 150" style={styles.svgFundoIcone}>
+                    <Defs>
+                      <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                        <Stop offset="0%" stopColor="#08BFB5" stopOpacity="0" />
+                        <Stop offset="60%" stopColor="#08BFB599" />
+                      </LinearGradient>
+                    </Defs>
 
-                  {/* Aqui desenhamos um quadrado */}
-                  <Rect
-                    x="0"
-                    y="0"
-                    width="100%" // Largura do quadrado
-                    height="100%" // Altura do quadrado
-                    fill="url(#gradient)" // Aplica o degradê
-                    stroke="#3A3E59" // Cor da borda
-                    strokeWidth="3" // Espessura da borda
-                  />
-                </Svg>
+                    {/* Aqui desenhamos um quadrado */}
+                    <Rect
+                      x="0"
+                      y="0"
+                      width="100%" // Largura do quadrado
+                      height="100%" // Altura do quadrado
+                      fill="url(#gradient)" // Aplica o degradê
+                    />
+                  </Svg>
               )}
 
               <Ionicons
