@@ -68,7 +68,7 @@ const TokenScreen: React.FC = () => {
             <Text style={styles.text}>Validar e sicronizar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btnIcon}>
+          <TouchableOpacity style={styles.btnIcon} onPress={() => navigation.navigate('(tabs)/guiaToken')}>
             <Image source={require('../../../assets/images/duvida.png')} style={styles.imgIcon} />
             <Text style={styles.text}>Ajuda</Text>
           </TouchableOpacity>

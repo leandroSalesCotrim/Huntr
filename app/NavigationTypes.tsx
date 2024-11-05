@@ -6,4 +6,5 @@ export type RootStackParamList = {
     "(tabs)/cadastro": undefined;
     "(tabs)/dashboard": undefined;
     "(tabs)/login": undefined;
+    "(tabs)/guiaToken": undefined;
 };
