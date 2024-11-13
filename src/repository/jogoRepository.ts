@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc} from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { db } from '../../src/database/firebaseConfig';
 import Jogo from '../models/jogoModel';
 import Trofeu from '../models/trofeuModel';
@@ -41,7 +41,7 @@ interface BundleData {
 class JogoRepository {
     private collectionName = 'jogos';
 
-    async verificarJogoExiste(nomeJogo: string): Promise<boolean> {
+    async buscaJogoNoBanco(nomeJogo: string): Promise<boolean> {
         try {
             const jogosCollection = collection(db, this.collectionName);
             const q = query(jogosCollection, where('nome', '==', nomeJogo));
@@ -238,6 +238,120 @@ class JogoRepository {
         }
     }
 
+    //função que trás uma lista de jogos encontrado no banco com o nome informado
+    async buscarJogoPorNome(nomeJogo: string): Promise<Jogo | undefined> {
+        try {
+            const collectionName = 'jogos';
+            const jogosCollection = collection(db, collectionName);
+
+            // Query usando o prefixo nome_normalizado com startAt() e endAt()
+            const q = query(jogosCollection, where('nome', '==', nomeJogo));
+
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                let jogoEncontrado: Jogo;
+                if (querySnapshot.docs.length == 1) {
+                    let queryData = querySnapshot.docs[0].data();
+
+                    //verificando se é bundle ou não
+                    if (queryData.bundle) {
+                        const dataBundle = queryData as BundleData
+
+                        // Convertendo os dados em uma instância da classe Trofeu
+                        if (dataBundle.jogos) {
+                            const jogosBundle: Array<Jogo> = [];
+
+                            //foreach para cado jogo dentro do bundle
+                            dataBundle.jogos.forEach(jogo => {
+                                const trofeus = jogo.trofeus.map((trofeuData: TrofeuData) => new Trofeu(
+                                    trofeuData.idTrofeu,
+                                    trofeuData.nome,
+                                    trofeuData.descricao,
+                                    trofeuData.guia,
+                                    trofeuData.tipo,
+                                    trofeuData.oculto,
+                                    trofeuData.iconeUrl,
+                                    trofeuData.tags,
+                                    false,//campo "obtido", deve ser atualizado após ser resgatado 
+                                    trofeuData.taxaConquistado,
+                                    trofeuData.raridade
+                                ));
+
+                                const jogoDoBundle = new Jogo(
+                                    jogo.nome,
+                                    jogo.plataforma, // url do guia de troféus
+                                    jogo.tempoParaPlatinar,
+                                    jogo.iconeUrl,
+                                    false,
+                                    jogo.serialJogo,
+                                    trofeus,
+                                    jogo.guiaUrl || '',
+                                    jogo.dificuldade || 0,
+                                    0,
+                                    jogo.npwr || ''
+                                );
+                                jogosBundle.push(jogoDoBundle);
+                            });
+
+                            const bundleJogo = new Jogo(
+                                dataBundle.nome,
+                                dataBundle.plataforma, // url do guia de troféus
+                                dataBundle.tempoParaPlatinar,
+                                dataBundle.iconeUrl,
+                                true,
+                                dataBundle.serialJogo,
+                                jogosBundle
+                            );
+
+                            jogoEncontrado = bundleJogo;
+                            return jogoEncontrado;
+                        }
+                    } else {
+                        const dataJogo = queryData as JogoData
+
+                        const trofeus = dataJogo.trofeus.map((trofeuData: TrofeuData) => new Trofeu(
+                            trofeuData.idTrofeu,
+                            trofeuData.nome,
+                            trofeuData.descricao,
+                            trofeuData.guia,
+                            trofeuData.tipo,
+                            trofeuData.oculto,
+                            trofeuData.iconeUrl,
+                            trofeuData.tags,
+                            true,//campo "obtido", deve ser atualizado após ser resgatado 
+                            trofeuData.taxaConquistado,
+                            trofeuData.raridade
+                        ));
+
+                        const jogo = new Jogo(
+                            dataJogo.nome,
+                            dataJogo.plataforma,
+                            dataJogo.tempoParaPlatinar,
+                            dataJogo.iconeUrl,
+                            dataJogo.bundle,
+                            dataJogo.serialJogo || '',
+                            trofeus,
+                            dataJogo.guiaUrl || '',
+                            dataJogo.dificuldade || 0,
+                            0,
+                            dataJogo.npwr || ''
+                        );
+
+                        jogoEncontrado = jogo;
+                        return jogoEncontrado;
+                    }
+                }
+
+            } else {
+                console.log('Nenhum documento encontrado com o serialJogo fornecido!');
+                return undefined;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar os jogos: ', error);
+            throw error;
+        }
+    }
 
 }
 

@@ -345,7 +345,8 @@ const GuiaTokenScreen: React.FC = () => {
             setStep(prev => prev + 1);
             changeBoxStyle(); // Chama a função para alterar o estilo do box
         } else {
-            // navigation.navigate("HomeScreen"); // Navegar para a tela inicial ou qualquer outra
+            // Volta para a tela anterior (tela do token)
+            navigation.goBack();
         }
     };
 
@@ -379,15 +380,7 @@ const GuiaTokenScreen: React.FC = () => {
             setBoxLogoStyle([{ ...styles.boxLogo, display: "flex",top: 50 }]); // Agora aceita a altura como 100%
         }
     };
-    const openGifModal = (gif: React.SetStateAction<null>) => {
-        setSelectedGif(gif);
-        setModalVisible(true);
-    };
 
-    const closeGifModal = () => {
-        setModalVisible(false);
-        setSelectedGif(null);
-    };
 
     if (!fontsLoaded) {
         return <ActivityIndicator size="large" color="#0000ff" />;
@@ -435,26 +428,6 @@ const GuiaTokenScreen: React.FC = () => {
                 </View>
             </Animated.View>
 
-            {/* Modal para exibir o GIF maior */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={closeGifModal}
-            >
-                <View style={styles.modalBackground}>
-                    {selectedGif && (
-                        <Image
-                            source={selectedGif}
-                            style={styles.modalGif}
-                            resizeMode="contain"
-                        />
-                    )}
-                    <TouchableOpacity onPress={closeGifModal}>
-                        <Text style={{ color: 'white', fontSize: 18 }}>Fechar</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modal>
         </Animated.View>
     );
 };

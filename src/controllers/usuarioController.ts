@@ -3,7 +3,6 @@ import PlaylistService from "../services/playlistService";
 import Playlist from "../models/playlistModel";
 import JogoService from "../services/jogoService";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 class UsuarioController {
   private usuarioService: UsuarioService;
   private playlistService: PlaylistService;
@@ -18,6 +17,20 @@ class UsuarioController {
   //esta função seja chamada renovando a playlist atual
   async sincronizarPlaylists(sso: string) {
   }
+
+  async sincronizarToken(sso: string) {
+
+    if (sso) {
+      if (await this.usuarioService.obterPsnAuthorization(sso)) {
+        console.log("Token sincronizado com sucesso");
+
+      } else {
+        console.log("Não foi possivel sincronizar o token com o sso: " + sso);
+      }
+    }
+  }
+
+
 
   async criarNovasPlaylistUsuario(): Promise<Playlist[] | undefined> {
     if (await this.playlistService.listarPlaylists() == null) {

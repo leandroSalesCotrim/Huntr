@@ -1,28 +1,30 @@
 // token.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
-import WavesBackground from '../components/WavesBackground';
-import { Link, SplashScreen } from 'expo-router';
+import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Linking } from 'react-native';
+import { SplashScreen } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../NavigationTypes';
 import { StackNavigationProp } from '@react-navigation/stack';
+import UsuarioController from '../../../src/controllers/usuarioController';
 import {
   useFonts,
   Inter_400Regular,
   Inter_700Bold,
 } from '@expo-google-fonts/inter'
 
+let usuarioController = new UsuarioController();
+
 type TokenScreenNavigationProp = StackNavigationProp<RootStackParamList, '(tabs)/index'>;
 // Previne a tela de splash de desaparecer automaticamente
 SplashScreen.preventAutoHideAsync();
 
 const TokenScreen: React.FC = () => {
+  const [ssoToken, setSsoToken] = useState('');
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_700Bold,
   });
   const navigation = useNavigation<TokenScreenNavigationProp>();
-
 
 
   // Usar useEffect para ocultar a splash screen quando as fontes terminarem de carregar
@@ -36,11 +38,9 @@ const TokenScreen: React.FC = () => {
     return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
   }
 
-  const handleLogin = () => {
-    // Lógica de login
-
-    navigation.navigate('(tabs)/dashboard');
-
+  let handleSincronizarToken = async (sso: string) => {
+    console.log("este é o valor do sso que chegou até aqui "+sso);
+    await usuarioController.sincronizarToken(sso);
   };
 
   return (
@@ -54,19 +54,25 @@ const TokenScreen: React.FC = () => {
 
         <View style={styles.containerInput}>
           <Text style={styles.tituloToken}>SSO Token</Text>
-          <TextInput style={styles.input} placeholder='Insira seu SSO Token aqui' placeholderTextColor={"#1C1F2A"}></TextInput>
+          <TextInput
+          style={styles.input}
+          placeholder="Insira seu SSO Token aqui"
+          placeholderTextColor="#1C1F2A"
+          value={ssoToken} // 4. Defina o valor do TextInput
+          onChangeText={(text: any) => setSsoToken(text)} // 2. Atualize o estado ao mudar o texto
+        />
         </View>
 
-        <View style={styles.containerIcons}>
-          <TouchableOpacity style={styles.btnIcon}>
+        <View style={styles.containerIcons} >
+          <TouchableOpacity style={styles.btnIcon} onPress={() => Linking.openURL("https://ca.account.sony.com/api/v1/ssocookie")}>
             <Image source={require('../../../assets/images/icone-link.png')} style={styles.imgIcon} />
             <Text style={styles.text}>Obter token</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btnIcon}>
-            <Image source={require('../../../assets/images/validar-e-atualizar.png')} style={styles.imgIcon} />
-            <Text style={styles.text}>Validar e sicronizar</Text>
-          </TouchableOpacity>
+          <TouchableOpacity style={styles.btnIcon} onPress={() => handleSincronizarToken(ssoToken)}>
+          <Image source={require('../../../assets/images/validar-e-atualizar.png')} style={styles.imgIcon} />
+          <Text style={styles.text}>Validar e sincronizar</Text>
+        </TouchableOpacity>
 
           <TouchableOpacity style={styles.btnIcon} onPress={() => navigation.navigate('(tabs)/guiaToken')}>
             <Image source={require('../../../assets/images/duvida.png')} style={styles.imgIcon} />

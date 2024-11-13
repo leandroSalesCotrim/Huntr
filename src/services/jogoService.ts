@@ -1,5 +1,5 @@
 import levenshtein from 'fast-levenshtein';
-import cheerio, { CheerioAPI, Element as CheerioElement } from 'cheerio';
+import cheerio from 'cheerio';
 import axios from 'axios';
 import Jogo from '../models/jogoModel';
 import { RecentlyPlayedGamesResponse, getUserTitles, UserTitlesResponse, getRecentlyPlayedGames } from 'psn-api';
@@ -13,6 +13,28 @@ interface GuiaResponse {
     views: string;
     url: string;
 }
+//caracteres especiais que as vezes fazem parte do nome do jogo mas também são pouluintes, como a separação do nome do jogo para
+// o nome da versão do jogo, por exemplo "Mafia - definitive edition"
+//outro exemplo é "Rocket league®", as vezes o caracter especial pode estar colado com alguma palavras no nome do jogo
+const caracteresEspeciaisSujos = [
+    ":", "®", "™", "℠", "-", "–", "_",
+]
+//palavras que geralmente são jogadas de forma alatoria no nome do produto, que atrapalham na hora de fazer buscas sobre guia e etc.
+const palavrasSujas = [
+    "bundle", "collection", "edition", "set", "compilation", "remaster", "remastered", "deluxe",
+    "anthology", "ultimate", "season pass", "anniversary", "classic", "legacy", "gold", "enhanced",
+    "hd", "playstation4", "warmastered", "definitive", "deathinitive", "trophy", "Trophy", "pack.", "Pack.", "pack",
+    "trophies", "1/3", "2/3", "3/3", "complete", "console"
+];
+//frases que pode estar no titulo dos produtos mas que não necessáriamente são palavras do nome do jogo, pode ser um indicativo da versão
+//do produto ou erro de desenvolvedora na hora de registrar no banco da sony
+const frasesSujas = [
+    "ultimate edition", "game of the year", "special edition", "the game", "the complete edition", "the definitive edition", "single player", "return to arkham",
+]
+
+const palavrasIndicadorasDeBundle = [
+    "bundle", "trilogy", "collection", "compilation",
+];
 
 class JogoService {
     private trofeuService: TrofeuService;
@@ -22,9 +44,114 @@ class JogoService {
         this.jogoRepository = new JogoRepository();
     }
 
+    limpaNomeJogo(nomeJogo: string) {
+        //limpando todas as frases sujas que possam estar nome completo do jogo
+        for (let i = 0; i < frasesSujas.length; i++) {
+            if (nomeJogo.includes(frasesSujas[i])) {
+                nomeJogo = nomeJogo.replace(frasesSujas[i], "");
+            }
+        }
+
+        //separando o nome do jogo para comparar e limpar cada palavra
+        const nomeJogoSeparado = nomeJogo.split(" ");
+        let nomeJogoLimpo = '';
+
+
+        for (let j = 0; j < nomeJogoSeparado.length; j++) {
+
+            //limpeza de palavras sujas
+            for (let k = 0; k < palavrasSujas.length; k++) {
+                if (palavrasSujas[k] == nomeJogoSeparado[j]) {
+                    nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(palavrasSujas[k], "");
+                }
+            }
+
+            //limpeza de caracteres especiais
+            for (let l = 0; l < caracteresEspeciaisSujos.length; l++) {
+                if (nomeJogoSeparado[j].includes(caracteresEspeciaisSujos[l])) {
+                    //se a palavra que foi separada e esta sendo verificada é identica ao caracter especial
+                    //faz o replace por um espaço vazio, se não acrescenta um espaço no lugar
+                    //isto é para casos onde o caracter especial é colado com o nome do jogo, por exemplo:
+                    //final fantasy type-0 HD = type 0 e não type0
+                    if (nomeJogoSeparado[j] == caracteresEspeciaisSujos[l]) {
+                        nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], "")
+                    } else {
+                        nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], " ")
+                    }
+                }
+            }
+
+            //concatenação das palavras em uma var onde o nome do jogo está limpo
+            if (nomeJogoLimpo != undefined) {
+                nomeJogoLimpo = nomeJogoLimpo + " " + nomeJogoSeparado[j]
+            } else {
+                nomeJogoLimpo = nomeJogoSeparado[0];
+            }
+        }
+
+        // Faz as últimas limpezas e ajustes no nome
+        return nomeJogoLimpo
+            .replace(/\s\d+\/\d+$/, "") // Remove números finais no formato "X/Y"
+            .replace(/\s{2,}/g, " ")    // Remove múltiplos espaços
+            .replace("'", "'")          // Substitui apóstrofe
+            .replace("’", "'")          // Substitui apóstrofe
+            .trim();                    // Limpa os espaços que restaram
+    }
+
+    //funcão para organizar o nome de alguns jogos que vem mal estruturados e escritos na requisição da psn
+    //NÃO PODE ser utilizado o lower case aqui pois essa função também é utilizada para cadastrar os nomes dos jogos no banco
+    //e ao ir para o banco precisa ser exatamente como a requisição tras ou alterado como no código abaixo
+    //obs: talvez isso seja alterado futuramente
+    organizarNomeJogo(nomeJogo: string): string {
+        if (nomeJogo == "efootball2024") {
+            nomeJogo = "efootball 2024"
+        } else if (
+            nomeJogo == "Minecraft: PlayStation®4 Edition" ||
+            nomeJogo == "Minecraft: PlayStation®4 Edition Set 2" ||
+            nomeJogo == "Minecraft PlayStation 4 Edition" ||
+            nomeJogo == "Minecraft PlayStation 4 Edition  2") {
+
+            nomeJogo = "Minecraft"
+        } else if (nomeJogo == "Skyrim") {
+            nomeJogo = "Elder Scrolls V Skyrim"
+        } else if (nomeJogo == "Endling" || nomeJogo == "endling") {
+            nomeJogo = nomeJogo.replace("Endling", "Endling extinction is forever");
+            nomeJogo = nomeJogo.replace("endling", "Endling extinction is forever").toLocaleLowerCase();
+        } else if (nomeJogo == "GTA IV") {
+            nomeJogo = nomeJogo.replace("GTA IV", "Grand Theft Auto IV");
+        } else if (nomeJogo == "batman") {
+            nomeJogo = nomeJogo.replace("Batman", "Batman The Telltale Series");
+        } else if (nomeJogo == "How to Survive ゾンビアイランド2" || nomeJogo == "how to survive ゾンビアイランド2") {
+            nomeJogo = nomeJogo.replace("How to Survive ゾンビアイランド2", "How to Survive 2");
+            nomeJogo = nomeJogo.replace("how to survive ゾンビアイランド2", "How to Survive 2");
+        } else if (nomeJogo.includes("PvZ Garden Warfare")) {
+            nomeJogo = nomeJogo.replace("PvZ Garden Warfare", "Plants vs. Zombies Garden Warfare");
+        } else if (nomeJogo == "DIRT5") {
+            nomeJogo = nomeJogo.replace("DIRT5", "Dirt 5");
+        } else if (nomeJogo == "SOULCALIBUR Ⅵ") {
+            nomeJogo = nomeJogo.replace("SOULCALIBUR Ⅵ", "Soulcalibur VI");
+        } else if (nomeJogo == "[PROTOTYPE 2]" || nomeJogo == "[prototype 2]") {
+            nomeJogo = nomeJogo.replace("[PROTOTYPE 2]", "Prototype 2");
+            nomeJogo = nomeJogo.replace("[prototype 2]", "Prototype 2");
+        } else if (nomeJogo == "SUPER STREET FIGHTER Ⅳ") {
+            nomeJogo = nomeJogo.replace("[PROTOTYPE 2]", "Prototype 2");
+        } else if (nomeJogo == "KINGDOM HEARTS Birth by Sleep FINAL MIX" || nomeJogo == "kingdom hearts birth by sleep final mix") {
+            nomeJogo = nomeJogo.replace("KINGDOM HEARTS Birth by Sleep FINAL MIX", "KINGDOM HEARTS Birth by Sleep");
+            nomeJogo = nomeJogo.replace("kingdom hearts birth by sleep final mix", "kingdom hearts birth by sleep");
+        } else if (nomeJogo == "DCUO") {
+            nomeJogo = "DC Universe Online";
+        } else if (nomeJogo == "Wolverine") {
+            nomeJogo = "X Men Origins Wolverine"
+        } else if (nomeJogo == "HUMANITY Pack.") {
+            nomeJogo = "HUMANITY"
+        }
+
+        return nomeJogo;
+    }
+
     async verificarJogoNoFirebase(nomeJogo: string): Promise<boolean> {
         try {
-            let jogoExiste = await this.jogoRepository.verificarJogoExiste(nomeJogo);
+            let jogoExiste = await this.jogoRepository.buscaJogoNoBanco(nomeJogo);
             if (jogoExiste) {
                 console.log('Jogo encontrando no banco');
                 return true;
@@ -47,12 +174,12 @@ class JogoService {
             console.log("url final da pesquisa:" + queryUrlToGetGuide);
             const response = await axios.get(queryUrlToGetGuide);
             const html = response.data;
-            const $: CheerioAPI = cheerio.load(html);
+            const $ = cheerio.load(html);
 
             let closestMatch: GuiaResponse | null = null; // Usar a interface GuideMatch
             let smallestDistance = Infinity;
 
-            $('.guide-page-info').each((i: number, element: CheerioElement) => {
+            $('.guide-page-info').each((i, element) => {
                 const title = $(element).find('h3.ellipsis span').text().trim();
                 const distance = levenshtein.get(gameTitle.toLowerCase(), title.toLowerCase());
 
@@ -86,51 +213,51 @@ class JogoService {
         }
     }
 
-    async obterNpwrJogos(gameSerialId: string): Promise<string[]> {
-        try {
-            console.log("valor recebido no obterNpwrJogos: " + gameSerialId)
-            // Dividir a string usando o caractere de sublinhado
-            const [prefixo] = gameSerialId.split('_');
-            // Dividir o prefixo em letras e números
-            const serialRegionMatch = prefixo.match(/[A-Za-z]+/);
-            const serialNumberMatch = prefixo.match(/\d+/);
+    // async obterNpwrJogos(gameSerialId: string): Promise<string[]> {
+    //     try {
+    //         console.log("valor recebido no obterNpwrJogos: " + gameSerialId)
+    //         // Dividir a string usando o caractere de sublinhado
+    //         const [prefixo] = gameSerialId.split('_');
+    //         // Dividir o prefixo em letras e números
+    //         const serialRegionMatch = prefixo.match(/[A-Za-z]+/);
+    //         const serialNumberMatch = prefixo.match(/\d+/);
 
-            if (serialRegionMatch && serialNumberMatch) {
-                const serialRegion = serialRegionMatch[0]; // Captura a parte alfabética
-                const serialNumber = serialNumberMatch[0]; // Captura a parte numérica
+    //         if (serialRegionMatch && serialNumberMatch) {
+    //             const serialRegion = serialRegionMatch[0]; // Captura a parte alfabética
+    //             const serialNumber = serialNumberMatch[0]; // Captura a parte numérica
 
 
-                const queryUrlToGetGuide = `https://serialstation.com/titles/${serialRegion}/${serialNumber}`;
-                console.log("URL final da pesquisa:", queryUrlToGetGuide);
-                // Faz a requisição HTTP para obter o HTML da página
-                const response = await axios.get(queryUrlToGetGuide);
-                const html = response.data;
-                const $: CheerioAPI = cheerio.load(html);
+    //             const queryUrlToGetGuide = `https://serialstation.com/titles/${serialRegion}/${serialNumber}`;
+    //             console.log("URL final da pesquisa:", queryUrlToGetGuide);
+    //             // Faz a requisição HTTP para obter o HTML da página
+    //             const response = await axios.get(queryUrlToGetGuide);
+    //             const html = response.data;
+    //             const $: CheerioAPI = cheerio.load(html);
 
-                // Seleciona todos os links de troféus
-                const trophyLinks = $('dt:contains("Trophies")').next('dd').find('a');
+    //             // Seleciona todos os links de troféus
+    //             const trophyLinks = $('dt:contains("Trophies")').next('dd').find('a');
 
-                // Extrai todos os valores NPWR dos links
-                const trophies = trophyLinks.map((i, el) => $(el).text().trim()).get();
+    //             // Extrai todos os valores NPWR dos links
+    //             const trophies = trophyLinks.map((i, el) => $(el).text().trim()).get();
 
-                console.log(`lista de troféus encontrados: ${trophies.length}`);
-                console.log("Exibindo npwr " + trophies);
+    //             console.log(`lista de troféus encontrados: ${trophies.length}`);
+    //             console.log("Exibindo npwr " + trophies);
 
-                return trophies;
-            } else {
-                console.log("Algo deu errado na divisão da variavel gameSerial" + prefixo)
-            }
-            return [];
-        } catch (error) {
-            console.error('Erro obter NPWR dos Jogos:', error);
-            throw error;
-        }
+    //             return trophies;
+    //         } else {
+    //             console.log("Algo deu errado na divisão da variavel gameSerial" + prefixo)
+    //         }
+    //         return [];
+    //     } catch (error) {
+    //         console.error('Erro ao obter NPWR dos Jogos:', error);
+    //         throw error;
+    //     }
 
-    }
+    // }
     async obterJogadosRecentemente(authToken: any): Promise<RecentlyPlayedGamesResponse | undefined> {
         try {
             const response = await getRecentlyPlayedGames(authToken, {
-                limit: 5,
+                limit: 10,
                 categories: ["ps4_game", "ps5_native_game"]
             });
             // console.log("Exibindo jogados recentemente" + JSON.stringify(response));
@@ -287,5 +414,8 @@ class JogoService {
             return undefined;
         }
     }
+
 }
+
+
 export default JogoService;

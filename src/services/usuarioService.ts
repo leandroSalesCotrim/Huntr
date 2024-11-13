@@ -1,9 +1,6 @@
 // user.service.ts
-
 import { exchangeNpssoForCode, exchangeCodeForAccessToken, getUserTitles, exchangeRefreshTokenForAuthTokens, AuthTokensResponse, UserTitlesResponse } from 'psn-api';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 class UsuarioService {
 
@@ -14,32 +11,37 @@ class UsuarioService {
     async logout(idUsuario: number) {
     }
 
-    async obterPsnAuthorization(sso: string): Promise<void> {
+    async obterPsnAuthorization(sso: string): Promise<boolean> {
         try {
-            let accessCode = await exchangeNpssoForCode(sso);
+            console.log(sso + " em obterPsnAuthorization");
 
-            let authorization = await exchangeCodeForAccessToken(accessCode);
+            // Chame a função do script externo passando o SSO token
+            const accessCode = await exchangeNpssoForCode(sso);
 
+            // Use o accessCode para obter o token de acesso
+            const authorization = await exchangeCodeForAccessToken(accessCode);
+
+            // Armazene o token de autorização
             await AsyncStorage.setItem('authToken', JSON.stringify(authorization));
-            let authorizationTeste = await AsyncStorage.getItem('authToken');
+
+            const authorizationTeste = await AsyncStorage.getItem('authToken');
             if (authorizationTeste) {
                 console.log("Token armazenado com sucesso");
+                return true;
             } else {
                 console.log("Token não armazenado com sucesso");
+                return false;
             }
-
         } catch (error) {
+            console.error('Erro ao tentar obter o código de autorização da PSN:', error);
             if ((error as Error).message.includes('There was a problem retrieving your PSN access code')) {
-                console.error('Erro ao tentar realizar a autenticação do SSO na PSN ao obter um novo token:', (error as Error).message);
-                await AsyncStorage.removeItem('authToken');
-            } else {
-                console.error('Erro inesperado:', error);
+                console.log('Erro ao tentar autenticar. Tentando limpar o estado de autenticação...');
             }
-
             throw new Error('Erro ao tentar fazer requisição');
         }
     }
-    async validarToken(): Promise<void>  {
+
+    async validarToken(): Promise<void> {
         try {
             let tokenString = await AsyncStorage.getItem('authToken');
             if (tokenString) {

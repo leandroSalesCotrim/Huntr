@@ -6,7 +6,6 @@ import Svg, { Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import Perfil from './components/perfil';
 import Token from './components/token';
 import Playlists from './components/playlists';
-import { BlurView } from 'expo-blur';
 
 const Tab = createBottomTabNavigator();
 
