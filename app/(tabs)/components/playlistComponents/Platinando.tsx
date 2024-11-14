@@ -58,11 +58,17 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
 
         setFilteredGames(jogosFiltrados);
     };
+    const inverterLista = () => {
+        setFilteredGames(prevGames => [...prevGames].reverse());
+    };
 
     return (
         <View style={styles.container}>
-            <InicioComponent titleText="Jogos para platinar" openFilters={() => setModalVisible(true)} />
-
+            <InicioComponent
+                titleText="Jogos para platinar"
+                openFilters={() => setModalVisible(true)}
+                organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+            />
             <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}

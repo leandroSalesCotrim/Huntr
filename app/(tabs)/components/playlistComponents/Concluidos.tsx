@@ -58,10 +58,17 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
 
         setFilteredGames(jogosFiltrados);
     };
+    const inverterLista = () => {
+        setFilteredGames(prevGames => [...prevGames].reverse());
+    };
 
     return (
         <View style={styles.container}>
-            <InicioComponent titleText="Jogos platinados" openFilters={() => setModalVisible(true)} />
+            <InicioComponent
+                titleText="Jogos platinados"
+                openFilters={() => setModalVisible(true)}
+                organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+            />
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
                 {filteredGames.length > 0 ? (
