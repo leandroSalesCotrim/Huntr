@@ -4,7 +4,7 @@ import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-
 import { useFonts, Inter_400Regular, Inter_700Bold, } from '@expo-google-fonts/inter'
 import RecentesScreen from './playlistComponents/Recentes';
 import ConcluidosScreen from './playlistComponents/Concluidos';
-import PlatinandoScreen from './playlistComponents/Cacados';
+import PlatinandoScreen from './playlistComponents/Platinando';
 import UsuarioController from '@/src/controllers/usuarioController';
 import Playlist from '@/src/models/playlistModel';
 import { SplashScreen } from 'expo-router';
@@ -103,6 +103,8 @@ const Playlists = () => {
           <Text style={[styles.textIndicator, activeTab === 2 && styles.textActiveIndicator]}>Concluidos</Text>
         </View>
       </View>
+
+      
 
       <PanGestureHandler
         onGestureEvent={onGestureEvent}

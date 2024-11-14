@@ -1,4 +1,4 @@
-// app/components/inicio.tsx
+// app/components/inicioComponent.tsx
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, TextInput } from 'react-native';
 import {
@@ -9,10 +9,12 @@ import {
 import { SplashScreen } from 'expo-router';
 
 interface InicioComponentProps {
-    titleText: string
+    titleText: string;
+    openFilters: () => void;
+    organizar: () => void; // Adicione esta nova prop
 }
 
-const InicioComponent: React.FC<InicioComponentProps> = ({ titleText }) => {
+const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilters, organizar }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -34,8 +36,12 @@ const InicioComponent: React.FC<InicioComponentProps> = ({ titleText }) => {
                 <Text style={styles.title}>{titleText}</Text>
                 <View style={styles.boxIcons}>
                     <Image source={require('../../../../assets/images/atualizar.png')} style={styles.icon} />
-                    <Image source={require('../../../../assets/images/filtro.png')} style={styles.icon} />
-                    <Image source={require('../../../../assets/images/organizar.png')} style={styles.icon} />
+                    <TouchableOpacity onPress={openFilters} >
+                        <Image source={require('../../../../assets/images/filtro.png')} style={styles.icon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={organizar}> 
+                        <Image source={require('../../../../assets/images/organizar.png')} style={styles.icon} />
+                    </TouchableOpacity>
                 </View>
             </View>
             <View style={styles.row_2}>
@@ -80,22 +86,22 @@ const styles = StyleSheet.create({
         height: "50%",
         borderRadius: 30,
         backgroundColor: "#D9D9D9",
-        flexDirection:"row",
-        paddingLeft:15,
-        paddingRight:15,
-        top:10,
+        flexDirection: "row",
+        paddingLeft: 15,
+        paddingRight: 15,
+        top: 10,
 
     },
-    searchIcon:{
+    searchIcon: {
         width: 30,
         height: 30,
-        backgroundColor:"#26283B",
-        borderRadius:30,
-        alignSelf:"center"
+        backgroundColor: "#26283B",
+        borderRadius: 30,
+        alignSelf: "center"
     },
-    input:{
-        marginLeft:"5%",
-        height:"100%",
+    input: {
+        marginLeft: "5%",
+        height: "100%",
 
     }
 

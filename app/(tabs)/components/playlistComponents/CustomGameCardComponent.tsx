@@ -67,16 +67,17 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
         inputRange: [0, 1],
         outputRange: [0, isTextOverflowing ? -(textWidth.current * 0.5) : 0], // Move para a esquerda se o texto for longo
     });
+    // Definir a cor dinamicamente dependendo do progresso
+    const progressColor = jogo.getProgresso() === 100 ? '#57B3FF' : '#08BFB5'; // Verde para 100%, azul para outros valores
+
     // Calcular o height da progressBar com base no progresso
-    const progressHeight = jogo.getProgresso() ? (jogo.getProgresso() / 100) * 90 : 0;  // Exemplo de ajuste (assumindo que a altura total do progressLevel é 90)
+    const progressHeight = jogo.getProgresso() ? (jogo.getProgresso() / 100) * 100 : 0;
 
     return (
         <View style={styles.container} onLayout={(e) => { containerWidth.current = e.nativeEvent.layout.width }}>
-
-
             <View style={styles.imageBox}>
                 <View style={styles.progressBox}>
-                    <View style={[styles.progressLevel, { height: `${progressHeight}%` }]}>
+                    <View style={[styles.progressLevel, { height: `${progressHeight}%`, backgroundColor: progressColor }]}>
                     </View>
                     <Text style={styles.progressText}>Progresso</Text>
                 </View>
@@ -87,7 +88,7 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
                 )}
                 <View style={styles.platformBox}><Text style={styles.platformText}>{jogo.getPlataforma()}</Text></View>
             </View>
-
+    
             <View style={styles.titleBox}>
                 <View style={styles.titleBoxLimit}>
                     <Animated.View style={[{ transform: [{ translateX: textMove }] }]}>
@@ -97,7 +98,6 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
                     </Animated.View>
                 </View>
             </View>
-
         </View>
     );
 };

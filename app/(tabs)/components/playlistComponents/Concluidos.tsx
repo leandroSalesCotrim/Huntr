@@ -1,20 +1,22 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import InicioComponent from './InicioComponent';
 import GameCardComponent2 from './CustomGameCardComponent';
 import Playlist from '@/src/models/playlistModel';
+import FilterModalComponent from './FilterModalComponent';
 
 interface ConcluidosScreenProps {
     playlistConcluidos: Playlist
 }
 
 const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos }) => {
-    const [fontsLoaded] = useFonts({
-        Inter_400Regular,
-        Inter_700Bold,
-    });
+    const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
+    const [filteredGames, setFilteredGames] = useState(playlistConcluidos.getJogos());
+    const [modalVisible, setModalVisible] = useState(false);
+    const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+    const scrollViewRef = useRef<ScrollView>(null)
 
     useEffect(() => {
         if (fontsLoaded) {
@@ -25,22 +27,66 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     if (!fontsLoaded) {
         return <ActivityIndicator size="large" color="#0000ff" />;
     }
+    const handleScroll = (event: any) => {
+        const contentOffsetY = event.nativeEvent.contentOffset.y; // Posição de rolagem
+        const contentHeight = event.nativeEvent.contentSize.height; // Altura total do conteúdo
+        const layoutHeight = event.nativeEvent.layoutMeasurement.height; // Altura visível da ScrollView
+
+        if (contentHeight - contentOffsetY <= layoutHeight + 50) {
+            setShowScrollTopButton(true);
+        } else {
+            setShowScrollTopButton(false);
+        }
+    };
+
+    const scrollToTop = () => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    };
+
+    const aplicarFiltros = (criterios: { sortBy: string }) => {
+        const jogosFiltrados = [...playlistConcluidos.getJogos()];
+
+        if (criterios.sortBy === 'nome') {
+            jogosFiltrados.sort((a, b) => a.getNome().localeCompare(b.getNome()));
+        } else if (criterios.sortBy === 'progresso') {
+            jogosFiltrados.sort((a, b) => a.getProgresso() - b.getProgresso());
+        } else if (criterios.sortBy === 'dificuldade') {
+            jogosFiltrados.sort((a, b) => a.getDificuldade() - b.getDificuldade());
+        } else if (criterios.sortBy === 'tempoParaPlatinar') {
+            jogosFiltrados.sort((a, b) => a.getTempoParaPlatinar() - b.getTempoParaPlatinar());
+        }
+
+        setFilteredGames(jogosFiltrados);
+    };
 
     return (
         <View style={styles.container}>
-            <InicioComponent titleText="Jogos platinados" />
+            <InicioComponent titleText="Jogos platinados" openFilters={() => setModalVisible(true)} />
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {playlistConcluidos ? (
+
+                {filteredGames.length > 0 ? (
                     <View style={styles.itemsContainer}>
-                        {playlistConcluidos.getJogos().map((jogo, index) => (
+                        {filteredGames.map((jogo, index) => (
                             <GameCardComponent2 key={index} jogo={jogo} />
                         ))}
                     </View>
                 ) : (
-                    <Text>Playlist não carregada</Text>
+                    <Text>Playlist não carregada ou sem jogos correspondentes</Text>
                 )}
                 <View style={styles.preenchimento}></View>
             </ScrollView>
+
+            {showScrollTopButton && (
+                <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
+                    <Image source={require('../../../../assets/images/btn-top.png')} style={styles.btnTopIcon} />
+                </TouchableOpacity>
+            )}
+
+            <FilterModalComponent
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onApplyFilters={aplicarFiltros}
+            />
         </View>
     );
 };
@@ -65,6 +111,19 @@ const styles = StyleSheet.create({
     preenchimento: {
         width: "100%",
         height: 120,
+    },
+    scrollTopButton: {
+        position: 'absolute',
+        bottom: "20%",
+        right: 20,
+        backgroundColor: '#1D1F2E',
+        borderRadius: 30,
+        width: 50,
+        height: 50
+    },
+    btnTopIcon: {
+        width: "99%",
+        height: "99%"
     },
 });
 

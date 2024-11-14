@@ -1,4 +1,3 @@
-// app/components/Recentes.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
@@ -8,17 +7,17 @@ import GameCardComponent from './GameCardComponent';
 import Playlist from '@/src/models/playlistModel';
 import FilterModalComponent from './FilterModalComponent';
 
-interface RecentesScreenProps {
-    playlistRecente: Playlist;
+interface PlatinandoScreenProps {
+    playlistCacados: Playlist;
 }
 
-const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
+const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
-    const [filteredGames, setFilteredGames] = useState(playlistRecente.getJogos());
+    const [filteredGames, setFilteredGames] = useState(playlistCacados.getJogos());
     const [modalVisible, setModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-    const scrollViewRef = useRef<ScrollView>(null)
-   
+    const scrollViewRef = useRef<ScrollView>(null);
+
     useEffect(() => {
         if (fontsLoaded) {
             SplashScreen.hideAsync();
@@ -26,9 +25,8 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
     }, [fontsLoaded]);
 
     if (!fontsLoaded) {
-        return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
+        return <ActivityIndicator size="large" color="#0000ff" />;
     }
-
     const handleScroll = (event: any) => {
         const contentOffsetY = event.nativeEvent.contentOffset.y; // Posição de rolagem
         const contentHeight = event.nativeEvent.contentSize.height; // Altura total do conteúdo
@@ -44,12 +42,9 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
     const scrollToTop = () => {
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     };
-    const inverterLista = () => {
-        setFilteredGames(prevGames => [...prevGames].reverse());
-    };
 
     const aplicarFiltros = (criterios: { sortBy: string }) => {
-        const jogosFiltrados = [...playlistRecente.getJogos()];
+        const jogosFiltrados = [...playlistCacados.getJogos()];
 
         if (criterios.sortBy === 'nome') {
             jogosFiltrados.sort((a, b) => a.getNome().localeCompare(b.getNome()));
@@ -66,11 +61,8 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
 
     return (
         <View style={styles.container}>
-             <InicioComponent
-                titleText="Jogados recentemente"
-                openFilters={() => setModalVisible(true)}
-                organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
-            />
+            <InicioComponent titleText="Jogos para platinar" openFilters={() => setModalVisible(true)} />
+
             <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
@@ -99,8 +91,6 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
                 onClose={() => setModalVisible(false)}
                 onApplyFilters={aplicarFiltros}
             />
-
-
         </View>
     );
 };
@@ -110,8 +100,6 @@ const styles = StyleSheet.create({
         width: "33.5%",
         height: "100%",
         margin: "auto",
-        marginTop: 0,
-        marginBottom: 0,
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 10,
@@ -120,8 +108,8 @@ const styles = StyleSheet.create({
         top: 10,
     },
     preenchimento: {
-        width: "100%",
-        height: 100
+        width: '100%',
+        height: 100,
     },
     scrollTopButton: {
         position: 'absolute',
@@ -129,14 +117,13 @@ const styles = StyleSheet.create({
         right: 20,
         backgroundColor: '#1D1F2E',
         borderRadius: 30,
-        width: 50,
-        height: 50
+        width:50,
+        height:50
     },
     btnTopIcon: {
-        width: "99%",
-        height: "99%"
+        width:"99%",
+        height:"99%"
     },
-
 });
 
-export default RecentesScreen;
+export default PlatinandoScreen;
