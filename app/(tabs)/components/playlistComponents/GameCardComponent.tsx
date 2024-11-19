@@ -12,11 +12,12 @@ import CircularChart from './CircularChart';
 import { ScrollView } from 'react-native-gesture-handler';
 
 interface GameCardComponentProps {
-    jogo: Jogo
+    jogo: Jogo;
+    openModal: (jogo: Jogo) => void;  // Adicionando a função onPress aqui
 }
 
 
-const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
+const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -36,15 +37,13 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.imageBox}>
+            <TouchableOpacity style={styles.imageBox} onPress={() => openModal(jogo)}>
                 {jogo.getIconeUrl() ? (
-                    <>
-                        <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
-                    </>
+                    <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
                 ) : (
                     <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
                 )}
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.detailBox}>
                 <View style={styles.row_1}>
@@ -188,12 +187,12 @@ const styles = StyleSheet.create({
     },
     row_3: {
         width: "100%",
-        backgroundColor:"#2C2F44",
+        backgroundColor: "#2C2F44",
         flexDirection: "row",
         flexWrap: "wrap",
         alignSelf: "center",
-        alignItems:"center",
-        paddingVertical:5,
+        alignItems: "center",
+        paddingVertical: 5,
         borderRadius: 10
     },
     tagBox: {

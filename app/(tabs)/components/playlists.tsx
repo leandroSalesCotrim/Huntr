@@ -122,11 +122,9 @@ const Playlists = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#FFF',
     alignItems: "center",
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   navIndicator: {
     flexDirection: 'row',

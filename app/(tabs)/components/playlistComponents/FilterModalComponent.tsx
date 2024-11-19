@@ -39,35 +39,44 @@ const FilterModalComponent: React.FC<FilterModalComponentProps> = ({ visible, on
 
     return (
         <Modal visible={visible} transparent={true} animationType="slide">
-            <LinearGradient
-                colors={['#2C2F44', '#1D1F2E']}  // Degradê
-                style={styles.modalContent}
-            >
-                <Text style={styles.modalTitle}>Classificar por</Text>
-
-                <FlatList
-                    data={options}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.value}
-                />
-
-                <TouchableOpacity style={styles.button} onPress={aplicarFiltros}>
-                    <Text style={styles.buttonText}>Atualizar filtros</Text>
-                </TouchableOpacity>
-                
-            </LinearGradient>
+            <View style={styles.gradientContainer}> 
+                <LinearGradient
+                    colors={['#2C2F44', '#1D1F2E']}  
+                    style={styles.modalContent}
+                >
+                    <Text style={styles.modalTitle}>Classificar por</Text>
+    
+                    <FlatList
+                        data={options}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.value}
+                    />
+    
+                    <TouchableOpacity style={styles.button} onPress={aplicarFiltros}>
+                        <Text style={styles.buttonText}>Atualizar filtros</Text>
+                    </TouchableOpacity>
+                </LinearGradient>
+            </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalContent: {
-        paddingHorizontal: 50,
-        paddingVertical: 20,
-        borderRadius: 10,
-        width: '100%',
+    gradientContainer: {
+        borderWidth: 2, // Define a espessura da borda
+        borderColor: '#26283C', // Cor da borda
+        borderTopLeftRadius: 20, // Ajuste o raio conforme necessário
+        borderTopRightRadius: 20, // Ajuste o raio conforme necessário
+        overflow: 'hidden', // Garante que o conteúdo do LinearGradient seja cortado para caber na View
+        width: '102%',
         position: 'absolute',
         bottom: 0,
+        alignSelf:"center",
+    },
+    modalContent: {
+        paddingHorizontal: 50, // Adiciona o padding aqui
+        paddingVertical: 20, // Adiciona o padding aqui
+        width: '100%', 
     },
     modalTitle: {
         fontSize: 20,
@@ -102,13 +111,13 @@ const styles = StyleSheet.create({
         fontFamily: "Inter_400Regular",
     },
     button: {
-        width:"70%",
+        width: "70%",
         backgroundColor: '#D9D9D9',
         padding: 10,
         borderRadius: 30,
         marginTop: 30,
         alignItems: 'center',
-        alignSelf:"center"
+        alignSelf: "center"
     },
     buttonText: {
         color: 'black',

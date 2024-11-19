@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, Animated, TouchableOpacity } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import Jogo from '@/src/models/jogoModel';
 
 interface GameCardComponentProps {
     jogo: Jogo;
+    openModal: (jogo: Jogo) => void;  // Adicionando a função onPress aqui
 }
 
-const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
+const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -81,14 +82,16 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo }) => {
                     </View>
                     <Text style={styles.progressText}>Progresso</Text>
                 </View>
-                {jogo.getIconeUrl() ? (
-                    <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
-                ) : (
-                    <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
-                )}
+                <TouchableOpacity style={styles.touchImageBox} onPress={() => openModal(jogo)}>
+                    {jogo.getIconeUrl() ? (
+                        <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
+                    ) : (
+                        <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
+                    )}
+                </TouchableOpacity>
                 <View style={styles.platformBox}><Text style={styles.platformText}>{jogo.getPlataforma()}</Text></View>
             </View>
-    
+
             <View style={styles.titleBox}>
                 <View style={styles.titleBoxLimit}>
                     <Animated.View style={[{ transform: [{ translateX: textMove }] }]}>
@@ -120,7 +123,7 @@ const styles = StyleSheet.create({
     },
     progressBox: {
         height: '100%',
-        width: '100%',
+        width: '7%',
         position: "absolute",
         right: 0,
         backgroundColor: '#D9D9D9',
@@ -135,7 +138,7 @@ const styles = StyleSheet.create({
         bottom: 0,
     },
     progressText: {
-        width: "5%",
+        width: "70%",
         position: "absolute",
         right: 0,
         fontFamily: 'Inter_400Regular',
@@ -143,9 +146,13 @@ const styles = StyleSheet.create({
         color: "#1D1F2E",
 
     },
+    touchImageBox:{
+        width:"93%",
+        height:"100%"
+    },
     gameImage: {
         height: '100%',
-        width: '93%',
+        width: '100%',
         borderTopLeftRadius: 5,
         borderTopRightRadius: 5,
         borderBottomRightRadius: 5,

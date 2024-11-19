@@ -7,6 +7,8 @@ import InicioComponent from './InicioComponent';
 import GameCardComponent from './GameCardComponent';
 import Playlist from '@/src/models/playlistModel';
 import FilterModalComponent from './FilterModalComponent';
+import GameModalComponent from './GameModalComponent';
+import Jogo from '@/src/models/jogoModel';
 
 interface RecentesScreenProps {
     playlistRecente: Playlist;
@@ -15,10 +17,12 @@ interface RecentesScreenProps {
 const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [filteredGames, setFilteredGames] = useState(playlistRecente.getJogos());
-    const [modalVisible, setModalVisible] = useState(false);
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
+    const [gameModalVisible, setGameModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null)
-   
+
     useEffect(() => {
         if (fontsLoaded) {
             SplashScreen.hideAsync();
@@ -63,12 +67,16 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
 
         setFilteredGames(jogosFiltrados);
     };
+    const handleGameCardPress = (jogo: Jogo) => {
+        setSelectedGame(jogo);  // Definir o jogo selecionado
+        setGameModalVisible(true);  // Abrir a modal
+    };
 
     return (
         <View style={styles.container}>
-             <InicioComponent
+            <InicioComponent
                 titleText="Jogados recentemente"
-                openFilters={() => setModalVisible(true)}
+                openFilters={() => setFilterModalVisible(true)}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
             />
             <ScrollView
@@ -80,7 +88,7 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
             >
                 {filteredGames.length > 0 ? (
                     filteredGames.map((jogo, index) => (
-                        <GameCardComponent key={index} jogo={jogo} />
+                        <GameCardComponent key={index} jogo={jogo} openModal={handleGameCardPress} />
                     ))
                 ) : (
                     <Text>Playlist não carregada ou sem jogos correspondentes</Text>
@@ -94,9 +102,15 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
                 </TouchableOpacity>
             )}
 
+            <GameModalComponent
+                visible={gameModalVisible}
+                onClose={() => setGameModalVisible(false)}
+                jogo={selectedGame} // Passando o jogo selecionado para a modal
+                tela={"recentes"}
+            />
             <FilterModalComponent
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
+                visible={filterModalVisible}
+                onClose={() => setFilterModalVisible(false)}
                 onApplyFilters={aplicarFiltros}
             />
 
@@ -110,7 +124,6 @@ const styles = StyleSheet.create({
         width: "33.5%",
         height: "100%",
         margin: "auto",
-        marginTop: 0,
         marginBottom: 0,
         paddingLeft: 20,
         paddingRight: 20,

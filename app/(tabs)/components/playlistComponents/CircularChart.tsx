@@ -19,9 +19,7 @@ const CircularChart: React.FC<CircularChartProps> = ({
 
   return (
     <View style={[styles.container, { width: tamanho, height: tamanho }]}>
-      <View style={styles.titleBox}>
-        <Text style={styles.title}>Progresso</Text>
-      </View>
+  
       <View style={styles.chartBox}>
         <Svg width={tamanho} height={tamanho}>
           {/* Fundo do gráfico */}
@@ -61,19 +59,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  titleBox: {
-    width: "100%",
-    height: "30%",
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom:10
-  },
-  title: {
-    color: "#CFCFCF",
-    fontSize: 10,
-  },
   chartBox: {
-    height: "70%",
+    height: "100%",
     width: "100%",
     justifyContent: 'center',
     alignItems: 'center',

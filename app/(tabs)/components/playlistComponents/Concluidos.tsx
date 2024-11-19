@@ -6,6 +6,8 @@ import InicioComponent from './InicioComponent';
 import GameCardComponent2 from './CustomGameCardComponent';
 import Playlist from '@/src/models/playlistModel';
 import FilterModalComponent from './FilterModalComponent';
+import Jogo from '@/src/models/jogoModel';
+import GameModalComponent from './GameModalComponent';
 
 interface ConcluidosScreenProps {
     playlistConcluidos: Playlist
@@ -15,6 +17,8 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [filteredGames, setFilteredGames] = useState(playlistConcluidos.getJogos());
     const [modalVisible, setModalVisible] = useState(false);
+    const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
+    const [gameModalVisible, setGameModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null)
 
@@ -61,6 +65,10 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     const inverterLista = () => {
         setFilteredGames(prevGames => [...prevGames].reverse());
     };
+    const handleGameCardPress = (jogo: Jogo) => {
+        setSelectedGame(jogo);  // Definir o jogo selecionado
+        setGameModalVisible(true);  // Abrir a modal
+    };
 
     return (
         <View style={styles.container}>
@@ -74,7 +82,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
                 {filteredGames.length > 0 ? (
                     <View style={styles.itemsContainer}>
                         {filteredGames.map((jogo, index) => (
-                            <GameCardComponent2 key={index} jogo={jogo} />
+                            <GameCardComponent2 key={index} jogo={jogo} openModal={handleGameCardPress}/>
                         ))}
                     </View>
                 ) : (
@@ -89,6 +97,12 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
                 </TouchableOpacity>
             )}
 
+            <GameModalComponent
+                visible={gameModalVisible}
+                onClose={() => setGameModalVisible(false)}
+                jogo={selectedGame} // Passando o jogo selecionado para a modal
+                tela={"concluidos"}
+            />
             <FilterModalComponent
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
