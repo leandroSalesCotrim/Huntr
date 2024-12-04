@@ -1,19 +1,19 @@
 // app/components/GameModalComponent.tsx
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, TextInput, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Modal, Animated, Easing } from 'react-native';
 import {
     useFonts,
     Inter_400Regular,
     Inter_700Bold,
 } from '@expo-google-fonts/inter'
-import { SplashScreen } from 'expo-router';
+import { SplashScreen, router } from 'expo-router';
 import Jogo from '@/src/models/jogoModel';
 import CircularChart from './CircularChart';
 import { ScrollView } from 'react-native-gesture-handler';
-import { tags } from 'react-native-svg/lib/typescript/xml';
 import Svg, { G, Circle, Path, Defs, Rect, ClipPath } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Trofeu from '@/src/models/trofeuModel';
 
 interface GameModalComponentProps {
     visible: boolean;
@@ -29,12 +29,20 @@ type RatingStarsProps = {
 
 const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClose, jogo, tela }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
+    const [animation] = useState(new Animated.Value(0)); // Valor inicial da animação
     // Calcula estrelas preenchidas e não preenchidas
     const filledStars = Math.floor(4); // Estrelas cheias
     const emptyStars = 5 - filledStars; // Estrelas vazias
+    const countBronze = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "bronze").length;
+    const countBronzeObtido = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "bronze" && trofeu.getConquistado()).length;
+    const countPrata = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "silver").length;
+    const countPrataObtido = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "silver" && trofeu.getConquistado()).length;
+    const countOuro = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "gold").length;
+    const countOuroObtido = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "gold" && trofeu.getConquistado()).length;
+    const countPlatina = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "platinum").length;
+    const countPlatinaObtido = jogo?.getTrofeus().filter(trofeu => trofeu.getTipo() === "platinum" && trofeu.getConquistado()).length;
 
     let textoBtns: string = "";
-
 
     if (tela == "recentes") {
         textoBtns = "Deseja adicionar este jogo a sua lista para platinar?"
@@ -56,8 +64,51 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
     const tags: string[] = Array.from(new Set(jogo.getTrofeus().flatMap(trofeu => trofeu.getTags())));
 
 
+    const redirecionarParaTrofeus = (jogo: Jogo) => {
+        closeModal();
+        router.push({
+            pathname: '/(tabs)/components/trophyList',
+            params: {
+                jogo: JSON.stringify(jogo),
+            },
+        })
+    }
+
+
+    const loopAnimation = Animated.loop(
+        Animated.timing(animation, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+        })
+    );
+
     const handlePress = () => {
+        // Reinicia a animação
+        animation.setValue(0);
+
+        // Inicia a animação em loop
+        loopAnimation.start();
+
+        // Para a animação depois de 1 segundo
+        setTimeout(() => {
+            loopAnimation.stop();
+            redirecionarParaTrofeus(jogo);
+        }, 1000); // 1 segundo, por exemplo
     };
+
+    // Transforma o valor da animação em escala
+    const scale = animation.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 5], // 5 vezes maior que o botão original
+    });
+
+    const opacity = animation.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [1, 0.5, 0], // Fica transparente ao final
+    });
+
     const closeModal = () => {
         onClose();
     };
@@ -130,25 +181,37 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
                             <View style={styles.boxTrophyIcons}>
                                 <View style={styles.boxTrophy}>
                                     <Image source={require('../../../../assets/images/trofeu-platina.png')} style={styles.trophyImage} />
-                                    <Text style={styles.trophyText}>x/1</Text>
+                                    <Text style={styles.trophyText}>{countPlatinaObtido}/{countPlatina}</Text>
                                 </View>
                                 <View style={styles.boxTrophy}>
                                     <Image source={require('../../../../assets/images/trofeu-ouro.png')} style={styles.trophyImage} />
-                                    <Text style={styles.trophyText}>x/x</Text>
+                                    <Text style={styles.trophyText}>{countOuroObtido}/{countOuro}</Text>
                                 </View>
                                 <View style={styles.boxTrophy}>
                                     <Image source={require('../../../../assets/images/trofeu-prata.png')} style={styles.trophyImage} />
-                                    <Text style={styles.trophyText}>x/x</Text>
+                                    <Text style={styles.trophyText}>{countPrataObtido}/{countPrata}</Text>
                                 </View>
                                 <View style={styles.boxTrophy}>
                                     <Image source={require('../../../../assets/images/trofeu-bronze.png')} style={styles.trophyImage} />
-                                    <Text style={styles.trophyText}>x/x</Text>
+                                    <Text style={styles.trophyText}>{countBronzeObtido}/{countBronze}</Text>
                                 </View>
                             </View>
-                            <View style={styles.boxTrophyBtn}>
-                                <Image source={require('../../../../assets/images/triangle-arrow.png')} style={styles.boxTrophyBtnImg} />
 
-                            </View>
+                            <TouchableOpacity style={styles.boxTrophyBtn} onPress={handlePress} >
+
+                                <Image source={require('../../../../assets/images/triangle-arrow.png')} style={styles.boxTrophyBtnImg} />
+                                <Animated.View
+                                    style={[
+                                        styles.animatedCircle,
+                                        {
+                                            transform: [{ scale }],
+                                            opacity,
+                                        },
+                                    ]}
+                                />
+
+                            </TouchableOpacity>
+
                         </LinearGradient>
                     </View>
                     <View style={styles.containerTrophyGuideDetails}>
@@ -164,7 +227,7 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
                                 <View style={styles.chartTitleBox}>
                                     <Text style={styles.highLightTextTrophyGuide}>Usuarios que platinaram</Text>
                                 </View>
-                                <CircularChart percentual={jogo.getProgresso()} tamanho={50} largura={3} />
+                                <CircularChart percentual={jogo.getTrofeus()[0].getTaxaConquistado()} tamanho={50} largura={3} />
                             </View>
 
                         </View>
@@ -224,7 +287,8 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
                                 <Text style={styles.confirmText}>Cancelar</Text>
                             </TouchableOpacity>
                         ) : (
-                                <><TouchableOpacity style={styles.btnConfirmar}>
+                            <>
+                                <TouchableOpacity style={styles.btnConfirmar}>
                                     <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
                                         <G clipPath="url(#clip0_65_3058)">
                                             <Circle cx="25" cy="25" r="24" fill="#1C1F2A" stroke="#8290BA" strokeWidth="2" />
@@ -239,22 +303,24 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
 
 
                                     <Text style={styles.confirmText}>Confirmar</Text>
-                                </TouchableOpacity><TouchableOpacity style={styles.btnConfirmar} onPress={closeModal}>
-                                        <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
-                                            <Circle cx="25" cy="25" r="24" fill="#1D1F2E" />
-                                            <Defs>
-                                                <ClipPath id="clip0_65_3060">
-                                                    <Rect width="50" height="50" fill="white" />
-                                                </ClipPath>
-                                            </Defs>
-                                            <G clipPath="url(#clip0_65_3060)">
-                                                <Circle cx="25" cy="25" r="24" stroke="#D65C5C" strokeWidth="2" />
-                                                <Circle cx="25" cy="25" r="12" stroke="#D65C5C" strokeWidth="3" />
-                                            </G>
-                                        </Svg>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.btnConfirmar} onPress={closeModal}>
+                                    <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                                        <Circle cx="25" cy="25" r="24" fill="#1D1F2E" />
+                                        <Defs>
+                                            <ClipPath id="clip0_65_3060">
+                                                <Rect width="50" height="50" fill="white" />
+                                            </ClipPath>
+                                        </Defs>
+                                        <G clipPath="url(#clip0_65_3060)">
+                                            <Circle cx="25" cy="25" r="24" stroke="#D65C5C" strokeWidth="2" />
+                                            <Circle cx="25" cy="25" r="12" stroke="#D65C5C" strokeWidth="3" />
+                                        </G>
+                                    </Svg>
 
-                                        <Text style={styles.confirmText}>Cancelar</Text>
-                                    </TouchableOpacity></>
+                                    <Text style={styles.confirmText}>Cancelar</Text>
+                                </TouchableOpacity>
+                            </>
                         )}
 
 
@@ -330,7 +396,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#D9D9D9",
         width: "40%",
         height: "25%",
-        borderRadius: 15,
+        borderRadius: 5,
         alignItems: "center",
         justifyContent: "center",
         marginTop: 5,
@@ -385,7 +451,7 @@ const styles = StyleSheet.create({
     },
     tagBox: {
         backgroundColor: "#D9D9D9",
-        borderRadius: 40,
+        borderRadius: 5,
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 10,
@@ -423,7 +489,7 @@ const styles = StyleSheet.create({
     boxTrophy: {
         height: 25,
         flexDirection: "row",
-        marginRight: 20
+        marginRight: 10
     },
     trophyText: {
         fontFamily: "Inter_400Regular",
@@ -444,6 +510,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderLeftWidth: 4,
         borderColor: "#1D1F2E",
+        overflow: 'hidden', // Garante que a bolinha não ultrapasse o botão
     },
     boxTrophyBtnImg: {
         height: 25,
@@ -455,6 +522,15 @@ const styles = StyleSheet.create({
         fontSize: 12,
         textAlign: "center",
         color: "#1D1F2E",
+        zIndex: 2, // Mantém o texto acima da animação
+    },
+    animatedCircle: {
+        position: 'absolute',
+        height: 50,
+        width: 50,
+        backgroundColor: '#FFF',
+        borderRadius: 25, // Torna a view circular
+        zIndex: 1,
     },
     containerTrophyGuideDetails: {
         width: "100%",

@@ -3,13 +3,16 @@ import Playlist from '../models/playlistModel';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import JogoService from './jogoService';
 import JogoRepository from '../repository/jogoRepository';
-import { meuScript } from '../../scripts/popular_dados';
+// import { meuScript } from '../../scripts/popular_dados';
+import TrofeuService from './trofeuService';
 
 
 class PlaylistService {
+    private trofeuService: TrofeuService;
     private jogoService: JogoService;
     private jogoRepository: JogoRepository;
     constructor() {
+        this.trofeuService = new TrofeuService();
         this.jogoService = new JogoService();
         this.jogoRepository = new JogoRepository();
     }
@@ -35,17 +38,17 @@ class PlaylistService {
             }
             //depois verifica se existe alguma playlist no banco
             //então caso nada retorne, retorn undefined
-            console.log("Não foi encontrado nenhuma playlist em cache ")
+            console.log("Não foi encontrado nenhuma playlist em cache")
             return null;
         } catch (error) {
             console.error("Deu algo errado ao tentar listar as playlists " + error)
             throw error;
         }
     }
-    async executarScript() {
-        const resultado = meuScript();
-        console.log(resultado);
-    };
+    // async executarScript() {
+    //     const resultado = meuScript();
+    //     console.log(resultado);
+    // };
     async definirPlaylistsIniciais(): Promise<Playlist[] | undefined> {
         try {
             let playlists: Array<Playlist> = [];
@@ -69,9 +72,6 @@ class PlaylistService {
                             )
                         );
 
-                        console.log("DWAHIDAWHDUHAWUHDUAWD");
-                        console.log(jogoEncontradoNoBanco?.getNome());
-
                         if (jogoEncontradoNoBanco) {
                             const todosJogosResponse = await this.jogoService.obterTodosJogos(authToken);
 
@@ -94,14 +94,16 @@ class PlaylistService {
                                             )
                                         )
                                 );
-                                console.log("O jogo a seguir recebera o progresso");
-                                console.log(jogoEncontradoNoBanco.getNome());
 
                                 if (jogoEncontrado) {
-                                    console.log("223ndnawduianwddn");
-                                    console.log(jogoEncontrado.progress);
+                                    const userTrophyData = await this.trofeuService.obterTrofeusPeloNpwr(jogoEncontrado.npCommunicationId);
                                     // Aqui, 'setProgresso' agora recebe o progresso do jogo encontrado
                                     jogoEncontradoNoBanco.setProgresso(jogoEncontrado.progress);
+
+                                    
+                                    userTrophyData.map((trofeu, index) => (
+                                        jogoEncontradoNoBanco?.getTrofeus()[index].setConquistado(trofeu.getConquistado())
+                                    ))
 
                                     //definindo plataforma
                                     if (jogoEncontrado.trophyTitlePlatform.toLowerCase() != "unknown") {
@@ -117,7 +119,7 @@ class PlaylistService {
 
                             console.log("Jogo " + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " encontrado no banco: ");
                             if (jogoEncontradoNoBanco) {
-                                console.log(jogoEncontradoNoBanco.getBundle());
+                                // console.log(jogoEncontradoNoBanco.getBundle());
                                 // console.log("Jogo montado com dados do banco: " + JSON.stringify(jogoEncontradoNoBanco));
                                 if (jogoEncontradoNoBanco.getBundle()) {
                                     console.log("Identificado como bundle");
@@ -129,7 +131,7 @@ class PlaylistService {
                             }
 
                         } else {
-                            console.log("Não foi possivel encontrar o jogo," + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " no banco")
+                            console.log("Não foi possivel encontrar o jogo " + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " no banco")
                             executarScript = true;
                         }
                     }

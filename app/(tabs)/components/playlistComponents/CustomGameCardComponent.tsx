@@ -10,11 +10,7 @@ interface GameCardComponentProps {
 }
 
 const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }) => {
-    const [fontsLoaded] = useFonts({
-        Inter_400Regular,
-        Inter_700Bold,
-    });
-
+    const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [isTextOverflowing, setIsTextOverflowing] = useState(false); // Estado para verificar o overflow
     const textAnim = useRef(new Animated.Value(0)).current; // Animação de valor
     const textWidth = useRef(0); // Armazena a largura do texto
@@ -76,12 +72,15 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
 
     return (
         <View style={styles.container} onLayout={(e) => { containerWidth.current = e.nativeEvent.layout.width }}>
+
             <View style={styles.imageBox}>
+
                 <View style={styles.progressBox}>
                     <View style={[styles.progressLevel, { height: `${progressHeight}%`, backgroundColor: progressColor }]}>
                     </View>
                     <Text style={styles.progressText}>Progresso</Text>
                 </View>
+
                 <TouchableOpacity style={styles.touchImageBox} onPress={() => openModal(jogo)}>
                     {jogo.getIconeUrl() ? (
                         <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
@@ -89,17 +88,23 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
                         <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
                     )}
                 </TouchableOpacity>
+
                 <View style={styles.platformBox}><Text style={styles.platformText}>{jogo.getPlataforma()}</Text></View>
+
             </View>
 
             <View style={styles.titleBox}>
+
                 <View style={styles.titleBoxLimit}>
+
                     <Animated.View style={[{ transform: [{ translateX: textMove }] }]}>
                         <Text style={styles.titleText} onLayout={onTextLayout}>
                             {jogo.getNome()}
                         </Text>
                     </Animated.View>
+
                 </View>
+
             </View>
         </View>
     );
@@ -111,11 +116,9 @@ const styles = StyleSheet.create({
         width: '48%',
         height: 212,
         backgroundColor: '#1D1F2E',
-        marginTop: 5,
-        marginBottom: 5,
+        marginVertical: 5,
         borderRadius: 5,
     },
-
     imageBox: {
         height: '87%',
         width: '100%',
@@ -128,7 +131,6 @@ const styles = StyleSheet.create({
         right: 0,
         backgroundColor: '#D9D9D9',
         justifyContent: "center",
-
     },
     progressLevel: {
         width: "100%",
@@ -144,11 +146,10 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter_400Regular',
         fontSize: 12,
         color: "#1D1F2E",
-
     },
-    touchImageBox:{
-        width:"93%",
-        height:"100%"
+    touchImageBox: {
+        width: "93%",
+        height: "100%"
     },
     gameImage: {
         height: '100%',

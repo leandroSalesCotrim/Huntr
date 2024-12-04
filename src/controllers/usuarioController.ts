@@ -38,17 +38,14 @@ class UsuarioController {
       await this.usuarioService.validarToken();
       let authorization = await AsyncStorage.getItem('authToken');
 
-      if (!authorization) {
-        console.log("Não tinha nada definido de token no cache");
-        await this.usuarioService.obterPsnAuthorization("INSERIR TOKEN AQUI");
-        authorization = await AsyncStorage.getItem('authToken');
-
-      }
+      // if (!authorization) {
+      //   console.log("Não tinha nada definido de token no cache");
+      //   await this.usuarioService.obterPsnAuthorization("INSERIR TOKEN AQUI");
+      //   authorization = await AsyncStorage.getItem('authToken');
+      // }
 
       if (authorization) {
-        let authToken = JSON.parse(authorization);
-
-
+        // let authToken = JSON.parse(authorization);
         return this.playlistService.definirPlaylistsIniciais();
 
       } else {

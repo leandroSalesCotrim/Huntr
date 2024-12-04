@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import InicioComponent from './InicioComponent';
+import GameModalComponent from './GameModalComponent';
 import GameCardComponent2 from './CustomGameCardComponent';
 import Playlist from '@/src/models/playlistModel';
 import FilterModalComponent from './FilterModalComponent';
 import Jogo from '@/src/models/jogoModel';
-import GameModalComponent from './GameModalComponent';
 
 interface ConcluidosScreenProps {
     playlistConcluidos: Playlist
@@ -20,7 +20,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
     const [gameModalVisible, setGameModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-    const scrollViewRef = useRef<ScrollView>(null)
+    const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
         if (fontsLoaded) {
@@ -31,6 +31,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     if (!fontsLoaded) {
         return <ActivityIndicator size="large" color="#0000ff" />;
     }
+
     const handleScroll = (event: any) => {
         const contentOffsetY = event.nativeEvent.contentOffset.y; // Posição de rolagem
         const contentHeight = event.nativeEvent.contentSize.height; // Altura total do conteúdo
@@ -44,7 +45,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
     };
 
     const scrollToTop = () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     };
 
     const aplicarFiltros = (criterios: { sortBy: string }) => {
@@ -62,9 +63,11 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
 
         setFilteredGames(jogosFiltrados);
     };
+
     const inverterLista = () => {
         setFilteredGames(prevGames => [...prevGames].reverse());
     };
+
     const handleGameCardPress = (jogo: Jogo) => {
         setSelectedGame(jogo);  // Definir o jogo selecionado
         setGameModalVisible(true);  // Abrir a modal
@@ -76,20 +79,32 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
                 titleText="Jogos platinados"
                 openFilters={() => setModalVisible(true)}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+                tela={"padrao"}
             />
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-
-                {filteredGames.length > 0 ? (
-                    <View style={styles.itemsContainer}>
-                        {filteredGames.map((jogo, index) => (
-                            <GameCardComponent2 key={index} jogo={jogo} openModal={handleGameCardPress}/>
-                        ))}
-                    </View>
-                ) : (
-                    <Text>Playlist não carregada ou sem jogos correspondentes</Text>
+            <FlatList
+                numColumns={2} // Fixado como 2
+                ref={flatListRef}
+                style={styles.scrollView}
+                data={filteredGames}
+                keyExtractor={(item, index) => item.getNome()} // Identificador único para cada item
+                renderItem={({ item }) => (
+                    <GameCardComponent2
+                        jogo={item}
+                        openModal={handleGameCardPress}
+                    />
                 )}
-                <View style={styles.preenchimento}></View>
-            </ScrollView>
+                showsVerticalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                columnWrapperStyle={styles.itemsContainer} // Aplica estilos ao contêiner de cada linha
+                ListEmptyComponent={
+                    <Text>Playlist não carregada ou sem jogos correspondentes</Text>
+                }
+                ListFooterComponent={<View style={styles.preenchimento} />}
+                initialNumToRender={4}  // Ajuste esse valor para otimizar o desempenho
+                maxToRenderPerBatch={3}
+                windowSize={3}
+            />
 
             {showScrollTopButton && (
                 <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
@@ -103,11 +118,14 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
                 jogo={selectedGame} // Passando o jogo selecionado para a modal
                 tela={"concluidos"}
             />
+
             <FilterModalComponent
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 onApplyFilters={aplicarFiltros}
+                tela={"padrao"}
             />
+
         </View>
     );
 };
@@ -125,9 +143,9 @@ const styles = StyleSheet.create({
         top: 10,
     },
     itemsContainer: {
-        flexDirection: 'row', // Alinha os itens horizontalmente
         flexWrap: 'wrap', // Permite que os itens que não cabem na linha atual "quebrem" para a próxima
-        justifyContent: 'space-between', // Distribui o espaço uniformemente entre os itens
+        flexDirection: 'row', // Alinha os itens horizontalmente
+        justifyContent: "space-between"
     },
     preenchimento: {
         width: "100%",

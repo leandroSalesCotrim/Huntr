@@ -22,11 +22,11 @@ class TrofeuService{
                             titleTrophys.trophies[i].trophyId,
                             String(titleTrophys.trophies[i].trophyName),
                             String(titleTrophys.trophies[i].trophyDetail),
-                            "blablablandanwdnawdauw8dnawu9dnabwd9udbnwu9dnaiuwnw",
+                            "Guia url",
                             titleTrophys.trophies[i].trophyType,
                             titleTrophys.trophies[i].trophyHidden,
                             String(titleTrophys.trophies[i].trophyIconUrl),
-                            ["Story", "Buggy", "Example"],
+                            [],
                             Boolean(titleTrophysUser.trophies[i].earned),
                             Number(titleTrophysUser.trophies[i].trophyEarnedRate),
                             Number(titleTrophysUser.trophies[i].trophyRare),
@@ -43,11 +43,11 @@ class TrofeuService{
                             titleTrophys.trophies[i].trophyId,
                             String(titleTrophys.trophies[i].trophyName),
                             String(titleTrophys.trophies[i].trophyDetail),
-                            "blablablandanwdnawdauw8dnawu9dnabwd9udbnwu9dnaiuwnw",
+                            "Guia url",
                             titleTrophys.trophies[i].trophyType,
                             titleTrophys.trophies[i].trophyHidden,
                             String(titleTrophys.trophies[i].trophyIconUrl),
-                            ["Story", "Buggy", "Example"],
+                            [],
                         )
                         trofeus.push(trofeu);
     
@@ -56,8 +56,6 @@ class TrofeuService{
                     console.error("Não foi possivel criar a lista de troféus");
                 }
 
-
-                
             }
             return trofeus;
         } catch (error) {

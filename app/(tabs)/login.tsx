@@ -1,8 +1,8 @@
 // Login.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Image, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import WavesBackground from './components/WavesBackground';
-import { Link, SplashScreen } from 'expo-router';
+import { SplashScreen } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../NavigationTypes';
 import { StackNavigationProp } from '@react-navigation/stack';

@@ -7,14 +7,16 @@ import {
     Inter_700Bold,
 } from '@expo-google-fonts/inter'
 import { SplashScreen } from 'expo-router';
+import Svg, { Circle, Defs, ClipPath, Rect, G } from 'react-native-svg';
 
 interface InicioComponentProps {
     titleText: string;
     openFilters: () => void;
     organizar: () => void; // Adicione esta nova prop
+    tela: string
 }
 
-const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilters, organizar }) => {
+const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilters, organizar, tela }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -35,13 +37,48 @@ const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilter
             <View style={styles.row_1}>
                 <Text style={styles.title}>{titleText}</Text>
                 <View style={styles.boxIcons}>
-                    <Image source={require('../../../../assets/images/atualizar.png')} style={styles.icon} />
-                    <TouchableOpacity onPress={openFilters} >
-                        <Image source={require('../../../../assets/images/filtro.png')} style={styles.icon} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={organizar}> 
-                        <Image source={require('../../../../assets/images/organizar.png')} style={styles.icon} />
-                    </TouchableOpacity>
+                    {tela != "trofeus" ? (
+                        <>
+                            <TouchableOpacity >
+                                <Image source={require('../../../../assets/images/atualizar.png')} style={styles.icon} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={openFilters} >
+                                <Image source={require('../../../../assets/images/filtro.png')} style={styles.icon} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={organizar}>
+                                <Image source={require('../../../../assets/images/organizar.png')} style={styles.icon} />
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <>
+
+                            <TouchableOpacity onPress={openFilters}>
+                                <Image source={require('../../../../assets/images/filtro.png')} style={styles.icon} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={organizar}>
+                                <Image source={require('../../../../assets/images/organizar.png')} style={styles.icon} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.btnVoltar} >
+                                <Svg width="30" height="30" viewBox="0 0 50 50" fill="none">
+                                    <Circle cx="25" cy="25" r="24" fill="#1D1F2E" />
+                                    <Defs>
+                                        <ClipPath id="clip0_65_3060">
+                                            <Rect width="50" height="50" fill="white" />
+                                        </ClipPath>
+                                    </Defs>
+                                    <G clipPath="url(#clip0_65_3060)">
+                                        <Circle cx="25" cy="25" r="24" stroke="#D65C5C" strokeWidth="2" />
+                                        <Circle cx="25" cy="25" r="12" stroke="#D65C5C" strokeWidth="3" />
+                                    </G>
+                                </Svg>
+                            </TouchableOpacity>
+                        </>
+                    )}
+
                 </View>
             </View>
             <View style={styles.row_2}>
@@ -76,9 +113,7 @@ const styles = StyleSheet.create({
     icon: {
         width: 30,
         height: 30,
-        marginLeft: 7,
-        marginRight: 7,
-
+        marginHorizontal: 7,
     },
     row_2: {
         display: "flex",
@@ -103,7 +138,10 @@ const styles = StyleSheet.create({
         marginLeft: "5%",
         height: "100%",
 
-    }
+    },
+    btnVoltar: {
+        marginHorizontal: 7,
+    },
 
 });
 

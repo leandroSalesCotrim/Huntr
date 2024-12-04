@@ -18,36 +18,39 @@ const Playlists = () => {
   const [playlistRecentes, setPlaylistRecentes] = useState<Playlist | null>(null);
   const [playlistCacados, setPlaylistCacados] = useState<Playlist | null>(null);
   const [playlistConcluidos, setPlaylistConcluidos] = useState<Playlist | null>(null);
-  
+
   const [activeTab, setActiveTab] = useState(0); // Estado para controlar a aba ativa
   const translateX = new Animated.Value(0); // Para animar o movimento do swipe
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_700Bold,
   });
+  
+  const carregarPlaylists = async () => {
+    try {
+      const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
+      if (loadedPlaylists) {
+        setPlaylists(loadedPlaylists);
+        setPlaylistRecentes(loadedPlaylists[0]); // Seleciona a primeira playlist por padrão
+        setPlaylistCacados(loadedPlaylists[1]);
+        setPlaylistConcluidos(loadedPlaylists[2]);
+      } else {
+        console.log("playlist undefined");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar a playlist:", error);
+    }
+  };
 
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-    const carregarPlaylists = async () => {
-      try {
-        const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
-        if (loadedPlaylists) {
-          setPlaylists(loadedPlaylists);
-          setPlaylistRecentes(loadedPlaylists[0]); // Seleciona a primeira playlist por padrão
-          setPlaylistCacados(loadedPlaylists[1]);
-          setPlaylistConcluidos(loadedPlaylists[2]);
-        } else {
-          console.log("playlist undefined");
-        }
-      } catch (error) {
-        console.error("Erro ao carregar a playlist:", error);
-      }
-    };
+  }, [fontsLoaded]); 
 
+  useEffect(() => {
     carregarPlaylists();
-  }, [fontsLoaded]); // Array vazio para executar apenas uma vez na montagem
+  }, []); 
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
@@ -78,7 +81,7 @@ const Playlists = () => {
     if (playlistRecentes && playlistCacados && playlistConcluidos) {
       switch (activeTab) {
         case 0:
-          return <PlatinandoScreen playlistCacados={playlistCacados}/>;
+          return <PlatinandoScreen playlistCacados={playlistCacados} />;
         case 1:
           return <RecentesScreen playlistRecente={playlistRecentes} />;
         case 2:
@@ -104,7 +107,7 @@ const Playlists = () => {
         </View>
       </View>
 
-      
+
 
       <PanGestureHandler
         onGestureEvent={onGestureEvent}

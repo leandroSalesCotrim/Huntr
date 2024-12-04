@@ -39,7 +39,7 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
         <View style={styles.container}>
             <TouchableOpacity style={styles.imageBox} onPress={() => openModal(jogo)}>
                 {jogo.getIconeUrl() ? (
-                    <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
+                    <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} resizeMode='stretch' />
                 ) : (
                     <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
                 )}
@@ -101,6 +101,15 @@ const styles = StyleSheet.create({
         marginTop: 5,
         marginBottom: 5,
         borderRadius: 35,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.20,
+        shadowRadius: 1.41,
+
+        elevation: 2,
     },
     imageBox: {
         height: "100%",
@@ -140,9 +149,9 @@ const styles = StyleSheet.create({
     },
     platformBox: {
         backgroundColor: "#D9D9D9",
-        width: "40%",
-        height: "25%",
-        borderRadius: 15,
+        width: "30%",
+        height: "20%",
+        borderRadius: 5,
         alignItems: "center",
         justifyContent: "center",
         marginTop: 5,
@@ -197,13 +206,13 @@ const styles = StyleSheet.create({
     },
     tagBox: {
         backgroundColor: "#D9D9D9",
-        borderRadius: 40,
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 10,
         paddingVertical: 3,
         marginLeft: 5,
         marginRight: 5,
+        borderRadius: 5,
     },
     tagScroll: {
         marginBottom: 10,  // Pequeno espaçamento para separar as tags

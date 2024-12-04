@@ -19,10 +19,9 @@ const CircularChart: React.FC<CircularChartProps> = ({
 
   return (
     <View style={[styles.container, { width: tamanho, height: tamanho }]}>
-  
+
       <View style={styles.chartBox}>
         <Svg width={tamanho} height={tamanho}>
-          {/* Fundo do gráfico */}
           <Circle
             stroke="white" // Cor do fundo
             cx={tamanho / 2}
@@ -31,7 +30,6 @@ const CircularChart: React.FC<CircularChartProps> = ({
             strokeWidth={largura}
             fill="transparent"
           />
-          {/* Círculo com preenchimento baseado na porcentagem */}
           <Circle
             stroke="#57B3FF" // Cor do preenchimento
             cx={tamanho / 2}
@@ -47,7 +45,6 @@ const CircularChart: React.FC<CircularChartProps> = ({
             fill="transparent"
           />
         </Svg>
-        {/* Texto da porcentagem no centro */}
         <Text style={styles.percentualTexto}>{`${percentual}%`}</Text>
       </View>
     </View>

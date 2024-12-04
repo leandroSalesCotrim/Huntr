@@ -319,7 +319,7 @@ class JogoRepository {
                             trofeuData.oculto,
                             trofeuData.iconeUrl,
                             trofeuData.tags,
-                            true,//campo "obtido", deve ser atualizado após ser resgatado 
+                            false,//campo "obtido", deve ser atualizado após ser resgatado 
                             trofeuData.taxaConquistado,
                             trofeuData.raridade
                         ));

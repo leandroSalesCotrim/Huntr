@@ -1,6 +1,6 @@
 // app/components/Recentes.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import InicioComponent from './InicioComponent';
@@ -14,14 +14,14 @@ interface RecentesScreenProps {
     playlistRecente: Playlist;
 }
 
-const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
+const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRecente }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [filteredGames, setFilteredGames] = useState(playlistRecente.getJogos());
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
     const [gameModalVisible, setGameModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-    const scrollViewRef = useRef<ScrollView>(null)
+    const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
         if (fontsLoaded) {
@@ -46,7 +46,7 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
     };
 
     const scrollToTop = () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     };
     const inverterLista = () => {
         setFilteredGames(prevGames => [...prevGames].reverse());
@@ -78,23 +78,28 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
                 titleText="Jogados recentemente"
                 openFilters={() => setFilterModalVisible(true)}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+                tela={"padrao"}
             />
-            <ScrollView
+            <FlatList
+                ref={flatListRef}
                 style={styles.scrollView}
+                data={filteredGames}
+                keyExtractor={(item, index) => item.getNome()} // Supondo que o jogo tenha um ID único
+                renderItem={({ item }) => (
+                    <GameCardComponent
+                        key={item.getNome()}
+                        jogo={item}
+                        openModal={handleGameCardPress}
+                    />
+                )}
                 showsVerticalScrollIndicator={false}
                 onScroll={handleScroll}
-                ref={scrollViewRef}
                 scrollEventThrottle={16}
-            >
-                {filteredGames.length > 0 ? (
-                    filteredGames.map((jogo, index) => (
-                        <GameCardComponent key={index} jogo={jogo} openModal={handleGameCardPress} />
-                    ))
-                ) : (
-                    <Text>Playlist não carregada ou sem jogos correspondentes</Text>
-                )}
-                <View style={styles.preenchimento}></View>
-            </ScrollView>
+                ListEmptyComponent={<Text>Playlist não carregada ou sem jogos correspondentes</Text>}
+                initialNumToRender={4}  // Ajuste esse valor para otimizar o desempenho
+                maxToRenderPerBatch={3}
+                windowSize={3}
+            />
 
             {showScrollTopButton && (
                 <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
@@ -112,12 +117,13 @@ const RecentesScreen: React.FC<RecentesScreenProps> = ({ playlistRecente }) => {
                 visible={filterModalVisible}
                 onClose={() => setFilterModalVisible(false)}
                 onApplyFilters={aplicarFiltros}
+                tela={"padrao"}
             />
 
 
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {

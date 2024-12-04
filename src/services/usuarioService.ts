@@ -56,7 +56,7 @@ class UsuarioService {
                 //se existir um campo chamado error na userTitlesResponse, provavelmente é por conta do token não estar valido
                 //então ele chama a renovação de token
                 if ('error' in userTitlesResponse) {
-                    this.atualizarToken(authToken);
+                    await this.atualizarToken(authToken);
                 } else if ('trophyTitles' in userTitlesResponse) {
                     console.log("Requisição realizada com sucesso. Token valido!");
                     // console.log("Retorno da validação de token: " + JSON.stringify(userTitlesResponse));

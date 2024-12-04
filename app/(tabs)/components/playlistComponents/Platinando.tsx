@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import InicioComponent from './InicioComponent';
@@ -20,7 +20,7 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
     const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
     const [gameModalVisible, setGameModalVisible] = useState(false);
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-    const scrollViewRef = useRef<ScrollView>(null);
+    const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
         if (fontsLoaded) {
@@ -44,7 +44,7 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
     };
 
     const scrollToTop = () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     };
 
     const aplicarFiltros = (criterios: { sortBy: string }) => {
@@ -62,9 +62,11 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
 
         setFilteredGames(jogosFiltrados);
     };
+
     const inverterLista = () => {
         setFilteredGames(prevGames => [...prevGames].reverse());
     };
+
     const handleGameCardPress = (jogo: Jogo) => {
         setSelectedGame(jogo);  // Definir o jogo selecionado
         setGameModalVisible(true);  // Abrir a modal
@@ -76,23 +78,28 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
                 titleText="Jogos para platinar"
                 openFilters={() => setModalVisible(true)}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+                tela={"padrao"}
             />
-            <ScrollView
+            <FlatList
+                ref={flatListRef}
                 style={styles.scrollView}
+                data={filteredGames}
+                keyExtractor={(item, index) => item.getNome()} // Supondo que o jogo tenha um ID único
+                renderItem={({ item }) => (
+                    <GameCardComponent
+                        key={item.getNome()}
+                        jogo={item}
+                        openModal={handleGameCardPress}
+                    />
+                )}
                 showsVerticalScrollIndicator={false}
                 onScroll={handleScroll}
-                ref={scrollViewRef}
                 scrollEventThrottle={16}
-            >
-                {filteredGames.length > 0 ? (
-                    filteredGames.map((jogo, index) => (
-                        <GameCardComponent key={index} jogo={jogo} openModal={handleGameCardPress}/>
-                    ))
-                ) : (
-                    <Text>Playlist não carregada ou sem jogos correspondentes</Text>
-                )}
-                <View style={styles.preenchimento}></View>
-            </ScrollView>
+                ListEmptyComponent={<Text>Playlist não carregada ou sem jogos correspondentes</Text>}
+                initialNumToRender={4}  // Ajuste esse valor para otimizar o desempenho
+                maxToRenderPerBatch={3}
+                windowSize={3}
+            />
 
             {showScrollTopButton && (
                 <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
@@ -109,6 +116,7 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 onApplyFilters={aplicarFiltros}
+                tela={"padrao"}
             />
         </View>
     );

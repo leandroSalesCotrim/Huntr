@@ -1,8 +1,7 @@
 // HomeScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text, StyleSheet, Button, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import WavesBackground from './components/WavesBackground';
-import * as Font from 'expo-font';
 import { Link, SplashScreen } from 'expo-router';
 import {
   useFonts,
