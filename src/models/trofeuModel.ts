@@ -6,13 +6,14 @@ class Trofeu {
     private tipo: string;
     private oculto: boolean;
     private conquistado: boolean;
+    private dataConquistado: Date | null;
     private taxaConquistado: number;
     private raridade: number;
     private iconeUrl: string;
     private tags: string[];
 
-    constructor(idTrofeu: number,nome: string,descricao: string,guia: string,tipo: string,oculto: boolean,iconeUrl: string,tags: string[]);
-    constructor(idTrofeu: number,nome: string,descricao: string,guia: string,tipo: string,oculto: boolean,iconeUrl: string,tags: string[],conquistado: boolean,taxaConquistado: number,raridade: number);
+    constructor(idTrofeu: number, nome: string, descricao: string, guia: string, tipo: string, oculto: boolean, iconeUrl: string, tags: string[]);
+    constructor(idTrofeu: number, nome: string, descricao: string, guia: string, tipo: string, oculto: boolean, iconeUrl: string, tags: string[], conquistado: boolean, dataConquistado: string, taxaConquistado: number, raridade: number);
 
     constructor
         (
@@ -25,6 +26,7 @@ class Trofeu {
             iconeUrl: string,
             tags: string[],
             conquistado?: boolean,
+            dataConquistado: string | null = null,
             taxaConquistado?: number,
             raridade?: number,
         ) {
@@ -38,6 +40,7 @@ class Trofeu {
         this.iconeUrl = iconeUrl;
         this.tags = tags;
         this.conquistado = conquistado || false;
+        this.dataConquistado = dataConquistado ? new Date(dataConquistado) : null;
         this.taxaConquistado = taxaConquistado || 0;
         this.raridade = raridade || 0;
     }
@@ -61,6 +64,9 @@ class Trofeu {
     }
     getConquistado(): boolean {
         return this.conquistado;
+    }
+    getDataConquistado(): Date | null {
+        return this.dataConquistado;
     }
     getTaxaConquistado(): number {
         return this.taxaConquistado;
@@ -96,6 +102,9 @@ class Trofeu {
     }
     setConquistado(conquistado: boolean): void {
         this.conquistado = conquistado;
+    }
+    setDataConquistado(dataConquistado: Date | null): void {
+        this.dataConquistado = dataConquistado;
     }
     setTaxaConquistado(TaxaConquistado: number): void {
         this.taxaConquistado = TaxaConquistado;

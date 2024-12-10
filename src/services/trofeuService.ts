@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Trofeu from '../models/trofeuModel';
-import { UserTrophiesEarnedForTitleResponse, TitleTrophiesResponse, getTitleTrophies, getUserTrophiesEarnedForTitle} from 'psn-api';
+import { UserTrophiesEarnedForTitleResponse, TitleTrophiesResponse, getTitleTrophies, getUserTrophiesEarnedForTitle } from 'psn-api';
 
 
-class TrofeuService{
+class TrofeuService {
 
     async obterTrofeusPeloNpwr(npwr: string): Promise<Trofeu[]> {
         try {
@@ -12,10 +12,10 @@ class TrofeuService{
             if (authorization) {
                 let authToken = JSON.parse(authorization);
 
-                let titleTrophys = await this.obterInformacoesTrofeusDoJogo(npwr,authToken);
-                let titleTrophysUser = await this.obterInformacoesTrofeusDoJogoUsuario(npwr,authToken);
+                let titleTrophys = await this.obterInformacoesTrofeusDoJogo(npwr, authToken);
+                let titleTrophysUser = await this.obterInformacoesTrofeusDoJogoUsuario(npwr, authToken);
 
-                if(titleTrophys && titleTrophysUser){
+                if (titleTrophys && titleTrophysUser) {
                     for (let i = 0; i < titleTrophys.totalItemCount; i++) {
 
                         const trofeu = new Trofeu(
@@ -28,15 +28,16 @@ class TrofeuService{
                             String(titleTrophys.trophies[i].trophyIconUrl),
                             [],
                             Boolean(titleTrophysUser.trophies[i].earned),
+                            String(titleTrophysUser.trophies[i].earnedDateTime),
                             Number(titleTrophysUser.trophies[i].trophyEarnedRate),
                             Number(titleTrophysUser.trophies[i].trophyRare),
-    
+
                         )
                         trofeus.push(trofeu);
-    
+
                     }
 
-                }else if(titleTrophys){
+                } else if (titleTrophys) {
                     for (let i = 0; i < titleTrophys.totalItemCount; i++) {
 
                         const trofeu = new Trofeu(
@@ -50,9 +51,9 @@ class TrofeuService{
                             [],
                         )
                         trofeus.push(trofeu);
-    
+
                     }
-                }else{
+                } else {
                     console.error("Não foi possivel criar a lista de troféus");
                 }
 
@@ -68,11 +69,23 @@ class TrofeuService{
     //Esta função obtem as informações dos troféus de um jogo resgatando pelo npwr
     async obterInformacoesTrofeusDoJogo(npwr: string, authToken: any): Promise<TitleTrophiesResponse | undefined> {
         try {
-            const titleTrophys = await getTitleTrophies(authToken, npwr, "all", {
-                npServiceName: "trophy"
-            });
+            const storedLanguageTag = JSON.stringify(await AsyncStorage.getItem('languageTag')).replaceAll('"','');
+            let idioma: string = "en-us";
+
+            if (storedLanguageTag.length == 5) {
+                idioma = storedLanguageTag;
+            }
+
+            const titleTrophys = await getTitleTrophies(
+                authToken,
+                npwr,
+                "all",
+                {
+                    npServiceName: "trophy",
+                    headerOverrides: { "Accept-Language": idioma }
+                });
             return titleTrophys;
-            
+
         } catch (error) {
             console.log("Erro ao obter informações dos trofeus obtidos do titulo");
             throw error;
@@ -84,15 +97,26 @@ class TrofeuService{
     //baseadas no usuário que esta resgatando, podendo obter informações como a taxa de conquista, se já foi obtido o trofeu e etc.
     async obterInformacoesTrofeusDoJogoUsuario(npwr: string, authToken: any): Promise<UserTrophiesEarnedForTitleResponse | undefined> {
         try {
+            const storedLanguageTag = JSON.stringify(await AsyncStorage.getItem('languageTag'));
+            let idioma: string = "en-us";
+
+            if (storedLanguageTag.length == 5) {
+                idioma = storedLanguageTag;
+            }
+
             const titleTrophysUser = await getUserTrophiesEarnedForTitle(
                 authToken,
                 "me",
                 npwr,
                 "all",
-                { npServiceName: "trophy" }
+                {
+                    npServiceName: "trophy",
+                    headerOverrides: { "Accept-Language": idioma }
+
+                }
             );
             return titleTrophysUser
-            
+
         } catch (error) {
             console.log("Erro ao obter informações dos trofeus obtidos do usuário");
             throw error;

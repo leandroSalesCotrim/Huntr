@@ -31,6 +31,7 @@ interface JogoData {
 interface BundleData {
     nome: string;
     plataforma: string;
+    tags: string[];
     iconeUrl: string;
     tempoParaPlatinar: number;
     bundle: boolean;
@@ -146,19 +147,29 @@ class JogoRepository {
                     // Convertendo os dados em uma instância da classe Trofeu
                     if (dataBundle.jogos) {
                         const jogosBundle: Array<Jogo> = [];
+                        let tagsDoBundle: string[] = [];
 
                         //foreach para cado jogo dentro do bundle
                         dataBundle.jogos.forEach(jogo => {
+
+                            // Adicionar as tags do jogo atual ao array geral de tags
+                            const tagsDoJogo = jogo
+                                .trofeus
+                                .flatMap(trofeu => trofeu.tags);
+                            tagsDoBundle = Array.from(new Set([...tagsDoBundle, ...tagsDoJogo]));
+
+
                             const trofeus = jogo.trofeus.map((trofeuData: TrofeuData) => new Trofeu(
                                 trofeuData.idTrofeu,
                                 trofeuData.nome,
                                 trofeuData.descricao,
-                                "NECESSARIO CORRIGIR APOS RESGATAR O VALOR DO BANCO",
+                                "",
                                 trofeuData.tipo,
                                 trofeuData.oculto,
                                 trofeuData.iconeUrl,
                                 trofeuData.tags,
                                 true,//campo "obtido", deve ser atualizado após ser resgatado 
+                                "",
                                 trofeuData.taxaConquistado,
                                 trofeuData.raridade
                             ));
@@ -167,6 +178,7 @@ class JogoRepository {
                                 jogo.nome,
                                 jogo.plataforma,
                                 jogo.tempoParaPlatinar,
+                                tagsDoJogo,
                                 jogo.iconeUrl,
                                 false,
                                 jogo.serialJogo,
@@ -183,6 +195,7 @@ class JogoRepository {
                             dataBundle.nome,
                             dataBundle.plataforma,
                             dataBundle.tempoParaPlatinar,
+                            tagsDoBundle,
                             dataBundle.iconeUrl,
                             true,
                             dataBundle.serialJogo,
@@ -201,12 +214,13 @@ class JogoRepository {
                         trofeuData.idTrofeu,
                         trofeuData.nome,
                         trofeuData.descricao,
-                        "NECESSARIO CORRIGIR APOS RESGATAR O VALOR DO BANCO",
+                        "",
                         trofeuData.tipo,
                         trofeuData.oculto,
                         trofeuData.iconeUrl,
                         trofeuData.tags,
                         true,//campo "obtido", deve ser atualizado após ser resgatado 
+                        "",
                         trofeuData.taxaConquistado,
                         trofeuData.raridade
                     ));
@@ -215,6 +229,7 @@ class JogoRepository {
                         dataJogo.nome,
                         dataJogo.plataforma,
                         dataJogo.tempoParaPlatinar,
+                        [],
                         dataJogo.iconeUrl,
                         dataJogo.bundle,
                         dataJogo.serialJogo || '',
@@ -261,9 +276,16 @@ class JogoRepository {
                         // Convertendo os dados em uma instância da classe Trofeu
                         if (dataBundle.jogos) {
                             const jogosBundle: Array<Jogo> = [];
+                            let tagsDoBundle: string[] = [];
 
                             //foreach para cado jogo dentro do bundle
                             dataBundle.jogos.forEach(jogo => {
+                                // Adicionar as tags do jogo atual ao array geral de tags
+                                const tagsDoJogo = Array.from(new Set(jogo.trofeus.flatMap(trofeu => trofeu.tags)));
+
+                                // Atualizar as tags do bundle com as tags únicas do jogo
+                                tagsDoBundle = Array.from(new Set([...tagsDoBundle, ...tagsDoJogo]));
+
                                 const trofeus = jogo.trofeus.map((trofeuData: TrofeuData) => new Trofeu(
                                     trofeuData.idTrofeu,
                                     trofeuData.nome,
@@ -274,6 +296,7 @@ class JogoRepository {
                                     trofeuData.iconeUrl,
                                     trofeuData.tags,
                                     false,//campo "obtido", deve ser atualizado após ser resgatado 
+                                    "",
                                     trofeuData.taxaConquistado,
                                     trofeuData.raridade
                                 ));
@@ -282,6 +305,7 @@ class JogoRepository {
                                     jogo.nome,
                                     jogo.plataforma, // url do guia de troféus
                                     jogo.tempoParaPlatinar,
+                                    tagsDoJogo,
                                     jogo.iconeUrl,
                                     false,
                                     jogo.serialJogo,
@@ -298,6 +322,7 @@ class JogoRepository {
                                 dataBundle.nome,
                                 dataBundle.plataforma, // url do guia de troféus
                                 dataBundle.tempoParaPlatinar,
+                                tagsDoBundle,
                                 dataBundle.iconeUrl,
                                 true,
                                 dataBundle.serialJogo,
@@ -320,6 +345,7 @@ class JogoRepository {
                             trofeuData.iconeUrl,
                             trofeuData.tags,
                             false,//campo "obtido", deve ser atualizado após ser resgatado 
+                            "",
                             trofeuData.taxaConquistado,
                             trofeuData.raridade
                         ));
@@ -328,6 +354,7 @@ class JogoRepository {
                             dataJogo.nome,
                             dataJogo.plataforma,
                             dataJogo.tempoParaPlatinar,
+                            [],
                             dataJogo.iconeUrl,
                             dataJogo.bundle,
                             dataJogo.serialJogo || '',

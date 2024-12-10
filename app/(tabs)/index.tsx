@@ -8,6 +8,8 @@ import {
   Inter_400Regular,
   Inter_700Bold,
 } from '@expo-google-fonts/inter'
+import { getLocales, getCalendars } from 'expo-localization';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Previne a tela de splash de desaparecer automaticamente
 SplashScreen.preventAutoHideAsync();
@@ -17,6 +19,27 @@ const HomeScreen: React.FC = () => {
     Inter_400Regular,
     Inter_700Bold,
   });
+
+  useEffect(() => {
+    const checkLanguageTag = async () => {
+      try {
+        const storedLanguageTag = await AsyncStorage.getItem('languageTag');
+
+        if (!storedLanguageTag) {
+          const currentLanguageTag = getLocales()[0].languageTag.toLowerCase();
+          console.log('Salvando languageTag:', currentLanguageTag);
+          await AsyncStorage.setItem('languageTag', currentLanguageTag);
+        } else {
+          console.log('LanguageTag armazenada:', storedLanguageTag);
+          
+        }
+      } catch (error) {
+        console.error('Erro ao acessar AsyncStorage:', error);
+      }
+    };
+
+    checkLanguageTag();
+  }, []); // Executa apenas uma vez ao montar o componente
 
 
 
@@ -57,7 +80,7 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.btn} >
-            <Link href="/teste"  style={styles.btnText}>
+            <Link href="/teste" style={styles.btnText}>
               Entrar como convidado
             </Link>
           </TouchableOpacity>

@@ -44,50 +44,73 @@ class JogoService {
         this.jogoRepository = new JogoRepository();
     }
 
-    limpaNomeJogo(nomeJogo: string) {
-        //limpando todas as frases sujas que possam estar nome completo do jogo
-        for (let i = 0; i < frasesSujas.length; i++) {
-            if (nomeJogo.includes(frasesSujas[i])) {
-                nomeJogo = nomeJogo.replace(frasesSujas[i], "");
-            }
-        }
-
+    limpaNomeJogo(nomeJogo: string, isBundle: boolean) {
         //separando o nome do jogo para comparar e limpar cada palavra
         const nomeJogoSeparado = nomeJogo.split(" ");
         let nomeJogoLimpo = '';
 
+        if (isBundle) {
 
-        for (let j = 0; j < nomeJogoSeparado.length; j++) {
-
-            //limpeza de palavras sujas
-            for (let k = 0; k < palavrasSujas.length; k++) {
-                if (palavrasSujas[k] == nomeJogoSeparado[j]) {
-                    nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(palavrasSujas[k], "");
-                }
-            }
-
-            //limpeza de caracteres especiais
-            for (let l = 0; l < caracteresEspeciaisSujos.length; l++) {
-                if (nomeJogoSeparado[j].includes(caracteresEspeciaisSujos[l])) {
-                    //se a palavra que foi separada e esta sendo verificada é identica ao caracter especial
-                    //faz o replace por um espaço vazio, se não acrescenta um espaço no lugar
-                    //isto é para casos onde o caracter especial é colado com o nome do jogo, por exemplo:
-                    //final fantasy type-0 HD = type 0 e não type0
-                    if (nomeJogoSeparado[j] == caracteresEspeciaisSujos[l]) {
-                        nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], "")
-                    } else {
-                        nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], " ")
+            for (let j = 0; j < nomeJogoSeparado.length; j++) {
+                //limpeza de caracteres especiais
+                for (let l = 0; l < caracteresEspeciaisSujos.length; l++) {
+                    if (nomeJogoSeparado[j].includes(caracteresEspeciaisSujos[l])) {
+                        //se a palavra que foi separada e esta sendo verificada é identica ao caracter especial
+                        //faz o replace por um espaço vazio, se não acrescenta um espaço no lugar
+                        //isto é para casos onde o caracter especial é colado com o nome do jogo, por exemplo:
+                        //final fantasy type-0 HD = type 0 e não type0
+                        //o replace não ocorre no else caso não seja encontrado o caracter
+                        if (nomeJogoSeparado[j] == caracteresEspeciaisSujos[l]) {
+                            nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], "")
+                        } else {
+                            nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], " ")
+                        }
                     }
                 }
             }
 
-            //concatenação das palavras em uma var onde o nome do jogo está limpo
-            if (nomeJogoLimpo != undefined) {
-                nomeJogoLimpo = nomeJogoLimpo + " " + nomeJogoSeparado[j]
-            } else {
-                nomeJogoLimpo = nomeJogoSeparado[0];
+        } else {
+            //limpando todas as frases sujas que possam estar nome completo do jogo
+            for (let i = 0; i < frasesSujas.length; i++) {
+                if (nomeJogo.includes(frasesSujas[i])) {
+                    nomeJogo = nomeJogo.replace(frasesSujas[i], "");
+                }
+            }
+
+
+            for (let j = 0; j < nomeJogoSeparado.length; j++) {
+
+                //limpeza de palavras sujas
+                for (let k = 0; k < palavrasSujas.length; k++) {
+                    if (palavrasSujas[k] == nomeJogoSeparado[j]) {
+                        nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(palavrasSujas[k], "");
+                    }
+                }
+
+                //limpeza de caracteres especiais
+                for (let l = 0; l < caracteresEspeciaisSujos.length; l++) {
+                    if (nomeJogoSeparado[j].includes(caracteresEspeciaisSujos[l])) {
+                        //se a palavra que foi separada e esta sendo verificada é identica ao caracter especial
+                        //faz o replace por um espaço vazio, se não acrescenta um espaço no lugar
+                        //isto é para casos onde o caracter especial é colado com o nome do jogo, por exemplo:
+                        //final fantasy type-0 HD = type 0 e não type0
+                        if (nomeJogoSeparado[j] == caracteresEspeciaisSujos[l]) {
+                            nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], "")
+                        } else {
+                            nomeJogoSeparado[j] = nomeJogoSeparado[j].replace(caracteresEspeciaisSujos[l], " ")
+                        }
+                    }
+                }
+
+                //concatenação das palavras em uma var onde o nome do jogo está limpo
+                if (nomeJogoLimpo != undefined) {
+                    nomeJogoLimpo = nomeJogoLimpo + " " + nomeJogoSeparado[j]
+                } else {
+                    nomeJogoLimpo = nomeJogoSeparado[0];
+                }
             }
         }
+
 
         // Faz as últimas limpezas e ajustes no nome
         return nomeJogoLimpo
@@ -304,6 +327,7 @@ class JogoService {
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
                     10,//tempo para platinar, coloquei um tempo aleatorio por não ter no momento como pegar o tempo real
+                    [],
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                     false,
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
@@ -334,6 +358,7 @@ class JogoService {
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
                     10,//tempo para platinar, coloquei um tempo aleatorio
+                    [],
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                     false,
                     jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].titleId,
@@ -376,6 +401,7 @@ class JogoService {
                                 todosJogosResponse.trophyTitles[c].trophyTitleName,
                                 todosJogosResponse.trophyTitles[c].trophyTitlePlatform,
                                 10,//tempo para platinar, coloquei um tempo aleatorio
+                                [],
                                 todosJogosResponse.trophyTitles[c].trophyTitleIconUrl,
                                 false,
                                 "",
@@ -400,6 +426,7 @@ class JogoService {
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].name,
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].platform,
                 10,//tempo para platinar, coloquei um tempo aleatorio
+                [],
                 jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[indexJogo].image.url,
                 true,
                 titleId,

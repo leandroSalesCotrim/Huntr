@@ -36,6 +36,7 @@ const GameResumeComponent: React.FC<GameResumeComponentProps> = ({ jogo }) => {
     
     //variavel que muda de acordo com o tamanho da imagem para não deixar muito borrado quando for landscape
     const valueBlur = isLandscape ? 3: 10;
+    const imageFormat = isLandscape ? "contain": "cover";
 
     const countBronze = jogo.trofeus.filter((trofeu: { tipo: string; }) => trofeu.tipo === "bronze").length;
     const countBronzeObtido = jogo.trofeus.filter((trofeu: { tipo: string; conquistado: any; }) => trofeu.tipo === "bronze" && trofeu.conquistado).length;
@@ -52,7 +53,7 @@ const GameResumeComponent: React.FC<GameResumeComponentProps> = ({ jogo }) => {
             <Image
                     blurRadius={valueBlur}
                     source={{ uri: jogo.iconeUrl }}
-                    style={styles.gameImage}
+                    style={[styles.gameImage,{resizeMode:imageFormat}]}
                     onLoad={handleImageLoad} // Adiciona o evento para capturar dimensões
                 />
             </View>
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
     gameImage: {
         width: "100%",
         alignSelf:"center",
-        resizeMode:"cover",
         aspectRatio: 1, 
     },
     backgroundDifusor: {

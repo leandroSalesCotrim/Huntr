@@ -34,8 +34,7 @@ const FilterModalComponent: React.FC<FilterModalComponentProps> = ({ visible, on
         options.push(
             { label: 'Tipo de troféu', value: 'tipo' },
             { label: 'Raridade', value: 'raridade' },
-            { label: 'Data conquistado', value: 'conquistado' },
-            { label: 'Taxa de pessoas que conquistaram', value: 'taxaConquistado' },
+            { label: 'Data conquistado', value: 'dataConquistado' },
         )
 
 

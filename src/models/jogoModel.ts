@@ -19,6 +19,7 @@ class Jogo {
 
     private nome: string;
     private progresso: number = 0;
+    private tags: string[] = [];
     private trofeus: Trofeu[] = [];
     private iconeUrl: string;
     private guiaUrl: string = "";
@@ -30,14 +31,15 @@ class Jogo {
 
 
     // Assinaturas de sobrecarga dos construtores
-    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, jogos: Jogo[]);
-    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, iconeUrl: string, bundle: boolean, serialJogo: string, trofeus: Trofeu[], guiaUrl: string, dificuldade: number, progresso: number, npwr: string);
+    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, tags: string[], iconeUrl: string, bundle: boolean, serialJogo: string, jogos: Jogo[]);
+    constructor(nome: string, plataforma: string, tempoParaPlatinar: number, tags: string[], iconeUrl: string, bundle: boolean, serialJogo: string, trofeus: Trofeu[], guiaUrl: string, dificuldade: number, progresso: number, npwr: string);
     //se for do tipo bundle vai ser assim
     // Construtor real
     constructor(
         nome: string,
         plataforma: string,
         tempoParaPlatinar: number,
+        tags: string[],
         iconeUrl: string,
         bundle: boolean,
         serialJogo?: string,
@@ -50,6 +52,7 @@ class Jogo {
         this.nome = nome;
         this.plataforma = plataforma || "";
         this.tempoParaPlatinar = tempoParaPlatinar;
+        this.tags = tags;
         this.iconeUrl = iconeUrl;
         this.bundle = bundle;
         this.serialJogo = serialJogo || "";
@@ -112,6 +115,9 @@ class Jogo {
     getTempoParaPlatinar(): number {
         return this.tempoParaPlatinar;
     }
+    getTags(): string[] {
+        return this.tags;
+    }
 
 
     setIdJogo(idJogo: number): void {
@@ -155,6 +161,9 @@ class Jogo {
     }
     setTempoParaPlatinar(tempoParaPlatinar: number): void {
         this.tempoParaPlatinar = tempoParaPlatinar;
+    }
+    setTags(tags: string[]): void {
+        this.tags = tags;
     }
 
 

@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, Touchable
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import InicioComponent from './InicioComponent';
-import GameCardComponent from './GameCardComponent';
+import GameCardDefaultComponent from './GameCardDefaultComponent';
 import Playlist from '@/src/models/playlistModel';
 import FilterModalComponent from './FilterModalComponent';
 import GameModalComponent from './GameModalComponent';
@@ -86,7 +86,7 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
                 data={filteredGames}
                 keyExtractor={(item, index) => item.getNome()} // Supondo que o jogo tenha um ID único
                 renderItem={({ item }) => (
-                    <GameCardComponent
+                    <GameCardDefaultComponent
                         key={item.getNome()}
                         jogo={item}
                         openModal={handleGameCardPress}
@@ -99,6 +99,7 @@ const PlatinandoScreen: React.FC<PlatinandoScreenProps> = ({ playlistCacados }) 
                 initialNumToRender={4}  // Ajuste esse valor para otimizar o desempenho
                 maxToRenderPerBatch={3}
                 windowSize={3}
+                ListFooterComponent={<View style={{ height: 120 }} />}
             />
 
             {showScrollTopButton && (
@@ -133,10 +134,6 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         top: 10,
-    },
-    preenchimento: {
-        width: '100%',
-        height: 100,
     },
     scrollTopButton: {
         position: 'absolute',

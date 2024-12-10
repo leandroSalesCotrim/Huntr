@@ -22,7 +22,12 @@ const TrophyListScreen = () => {
   const [orderByTags, setOrderByTags] = useState(true);
   const [orderByConquistado, setOrderByConquistado] = useState(true);
   const [awaysRevealed, setAwaysRevealed] = useState(false);
-
+  const [criterios, setCriterios] = useState({
+    sortBy: 'historia', // Valor padrão, ajuste conforme necessário
+    groupByTags: true,
+    groupByConquistado: true,
+    awaysRevealed: false,
+  });
 
   // Carrega as fontes
   const [fontsLoaded] = useFonts({
@@ -35,7 +40,7 @@ const TrophyListScreen = () => {
   }
 
   const groupedTrophys = filteredTrophys.reduce((groups: any, trofeu: any) => {
-    if (!orderByTags ) {
+    if (!orderByTags) {
       // Apenas dois grupos: Conquistados e Não Conquistados
       const groupKey = trofeu.conquistado ? "Conquistados" : "Não Conquistados";
       if (!groups[groupKey]) {
@@ -81,6 +86,16 @@ const TrophyListScreen = () => {
       return groups;
     }
 
+    const multiplayerCoopTags = ["Multiplayer Only", "Online Co‑Op"];
+    const hasMultiplayerCoopTags = multiplayerCoopTags.every(tag => trofeu.tags.includes(tag));
+    if (hasMultiplayerCoopTags) {
+      if (!groups["Multiplayer Only e Online Co‑Op"]) {
+        groups["Multiplayer Only e Online Co‑Op"] = [];
+      }
+      groups["Multiplayer Only e Online Co‑Op"].push(trofeu);
+      return groups;
+    }
+
     // Agrupamento por tags individuais
     trofeu.tags.forEach((tag: string) => {
       if (!groups[tag]) {
@@ -93,20 +108,50 @@ const TrophyListScreen = () => {
   }, {});
 
   // Tags dinâmicas que serão organizadas entre Platina e Sem Tag
-  const dynamicOrder = [
-    "Story",
-    "Unmissable",
-    "Difficulty Specific",
-    "Missable",
-    "Collectable",
-    "Co‑Op or Solo",
-    "Co-op",
-    "Multiplayer",
-    "Multiplayer Only e Online Required",
-    "Multiplayer Only", "Online Required",
-    "Grind",
-    "Conquistados"
-  ];
+  const getDynamicOrder = (sortBy: string) => {
+    const baseOrder = [
+      "Story",
+      "Unmissable",
+      "Difficulty Specific",
+      "Missable",
+      "Collectable",
+      "Co‑Op or Solo",
+      "Co-op",
+      "Multiplayer",
+      "Multiplayer Only e Online Required",
+      "Online Co‑Op e Multiplayer Only",
+      "Multiplayer Only",
+      "Online Required",
+      "Grind",
+      "Conquistados",
+    ];
+
+    if (sortBy === "online") {
+      // Reorganize as prioridades para o critério "online"
+      return [
+        "Multiplayer Only",
+        "Multiplayer Only e Online Required",
+        "Online Co‑Op e Multiplayer Only",
+        "Online Required",
+        "Online Co‑Op",
+        "Co‑Op or Solo",
+        ...baseOrder.filter(
+          (category) =>
+            category !== "Multiplayer Only e Online Required" &&
+            category !== "Multiplayer Only" &&
+            category !== "Online Co‑Op e Multiplayer Only" &&
+            category !== "Online Required" &&
+            category !== "Online Co‑Op" &&
+            category !== "Co‑Op or Solo"
+        ),
+      ];
+    }
+
+    return baseOrder; // Ordem padrão
+  };
+
+  let dynamicOrder = getDynamicOrder(criterios.sortBy);
+
 
   // Função que retorna a prioridade de cada categoria
   const getPriority = (category: string) => {
@@ -131,6 +176,7 @@ const TrophyListScreen = () => {
   const aplicarFiltros = (criterios: { sortBy: string, groupByTags: boolean, groupByConquistado: boolean, awaysRevealed: boolean }) => {
     let trofeusFiltrados = [...filteredTrophys];
 
+
     // Ordenando os troféus de acordo com o critério
     if (criterios.sortBy === 'historia') {
       trofeusFiltrados.sort((a, b) => {
@@ -139,16 +185,30 @@ const TrophyListScreen = () => {
         return a.nome.localeCompare(b.nome); // Ordenação alfabética
       });
     } else if (criterios.sortBy === 'online') {
-      trofeusFiltrados.sort((a, b) => {
-        const aOnline = a.tags && a.tags.includes('Online Required') ? 1 : 0;
-        const bOnline = b.tags && b.tags.includes('Online Required') ? 1 : 0;
-        return bOnline - aOnline; // Coloca online-required primeiro
-      });
+      criterios.sortBy = "online"
+      setCriterios(criterios)
     } else if (criterios.sortBy === 'tipo') {
-      trofeusFiltrados.sort((a, b) => a.tipo.localeCompare(b.tipo)); // Ordenação por tipo
+      type TipoTrofeu = 'platinum' | 'gold' | 'silver' | 'bronze';
+
+      const prioridade: Record<TipoTrofeu, number> = {
+        platinum: 1,
+        gold: 2,
+        silver: 3,
+        bronze: 4,
+      };
+
+      trofeusFiltrados.sort((a, b) => {
+        const pesoA = prioridade[a.tipo as TipoTrofeu] || 99;
+        const pesoB = prioridade[b.tipo as TipoTrofeu] || 99;
+        return pesoA - pesoB;
+      });
+
     } else if (criterios.sortBy === 'raridade') {
-      trofeusFiltrados.sort((a, b) => a.raridade - b.raridade); // Ordenação por raridade
+      trofeusFiltrados.sort((a, b) => a.taxaConquistado - b.taxaConquistado); // Ordenação por raridade
+    } else if (criterios.sortBy === 'dataConquistado') {
+      trofeusFiltrados.sort((a, b) => new Date(b.dataConquistado).getTime() - new Date(a.dataConquistado).getTime());
     }
+
 
     // Configurações adicionais de agrupamento
     if (!criterios.groupByTags) {
@@ -199,7 +259,7 @@ const TrophyListScreen = () => {
           if (orderByTags) {
             return (
               <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>{item.category +": "+ item.trofeus.length}</Text>
+                <Text style={styles.categoryTitle}>{item.category + ": " + item.trofeus.length}</Text>
                 <FlatList
                   data={item.trofeus}
                   keyExtractor={(subItem) => subItem.idTrofeu}

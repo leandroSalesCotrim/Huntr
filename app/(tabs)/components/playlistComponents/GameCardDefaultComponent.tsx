@@ -1,4 +1,4 @@
-// app/components/GameCardComponent.tsx
+// app/components/GameCardDefaultComponent.tsx
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, TextInput } from 'react-native';
 import {
@@ -11,13 +11,13 @@ import Jogo from '@/src/models/jogoModel';
 import CircularChart from './CircularChart';
 import { ScrollView } from 'react-native-gesture-handler';
 
-interface GameCardComponentProps {
+interface GameCardDefaultComponentProps {
     jogo: Jogo;
     openModal: (jogo: Jogo) => void;  // Adicionando a função onPress aqui
 }
 
 
-const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }) => {
+const GameCardDefaultComponent: React.FC<GameCardDefaultComponentProps> = ({ jogo, openModal }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -32,8 +32,16 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
     if (!fontsLoaded) {
         return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
     }
+    let tags: string[];
 
-    const tags: string[] = Array.from(new Set(jogo.getTrofeus().flatMap(trofeu => trofeu.getTags())));
+    //gambiarra
+    if (jogo.getTags().length > 0) {
+        tags = jogo.getTags();
+
+    } else {
+        tags = Array.from(new Set(jogo.getTrofeus().flatMap(trofeu => trofeu.getTags())));
+
+    }
 
     return (
         <View style={styles.container}>
@@ -219,4 +227,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default GameCardComponent;
+export default GameCardDefaultComponent;

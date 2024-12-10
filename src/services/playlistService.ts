@@ -5,6 +5,8 @@ import JogoService from './jogoService';
 import JogoRepository from '../repository/jogoRepository';
 // import { meuScript } from '../../scripts/popular_dados';
 import TrofeuService from './trofeuService';
+import { UserTitlesResponse } from 'psn-api';
+import Trofeu from '../models/trofeuModel';
 
 
 class PlaylistService {
@@ -67,68 +69,67 @@ class PlaylistService {
                         let jogoEncontradoNoBanco = await this.jogoRepository.buscarJogoPorNome(
                             this.jogoService.organizarNomeJogo(
                                 this.jogoService.limpaNomeJogo(
-                                    this.jogoService.organizarNomeJogo(nomeJogoRecente)
+                                    this.jogoService.organizarNomeJogo(nomeJogoRecente), false
                                 )
                             )
                         );
 
+                        //caso jogo não for encontrado no banco pode ser por conta de alguns caracteres especiais ou por ser bundle
+                        //então tenta procurar o jogo novamente como bundle true
+                        if (!jogoEncontradoNoBanco) {
+                            jogoEncontradoNoBanco = await this.jogoRepository.buscarJogoPorNome(
+                                this.jogoService.organizarNomeJogo(
+                                    this.jogoService.limpaNomeJogo(
+                                        this.jogoService.organizarNomeJogo(nomeJogoRecente), true
+                                    )
+                                )
+                            );
+                        }
+
+
                         if (jogoEncontradoNoBanco) {
                             const todosJogosResponse = await this.jogoService.obterTodosJogos(authToken);
-
                             if (todosJogosResponse) {
-                                // Filtra os jogos pelo nome exato ou parte do nome
-                                const jogoEncontrado = todosJogosResponse.trophyTitles.find(
-                                    jogo => this.jogoService.organizarNomeJogo(
-                                        this.jogoService.limpaNomeJogo(
-                                            this.jogoService.organizarNomeJogo(
-                                                jogo.trophyTitleName.toLowerCase()
-                                            )
-                                        )
-                                    )
-                                        ===
-                                        this.jogoService.organizarNomeJogo(
-                                            this.jogoService.limpaNomeJogo(
-                                                this.jogoService.organizarNomeJogo(
-                                                    nomeJogoRecente.toLowerCase()
-                                                )
-                                            )
-                                        )
-                                );
 
-                                if (jogoEncontrado) {
-                                    const userTrophyData = await this.trofeuService.obterTrofeusPeloNpwr(jogoEncontrado.npCommunicationId);
-                                    // Aqui, 'setProgresso' agora recebe o progresso do jogo encontrado
-                                    jogoEncontradoNoBanco.setProgresso(jogoEncontrado.progress);
-
-                                    
-                                    userTrophyData.map((trofeu, index) => (
-                                        jogoEncontradoNoBanco?.getTrofeus()[index].setConquistado(trofeu.getConquistado())
-                                    ))
-
-                                    //definindo plataforma
-                                    if (jogoEncontrado.trophyTitlePlatform.toLowerCase() != "unknown") {
-                                        jogoEncontradoNoBanco.setPlataforma(jogoEncontrado.trophyTitlePlatform);
-                                    } else {
-                                        jogoEncontradoNoBanco.setPlataforma("PSX");
-                                    }
-                                } else {
-                                    // Caso o jogo não seja encontrado
-                                    console.log("Jogo não encontrado!");
-                                }
-                            }
-
-                            console.log("Jogo " + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " encontrado no banco: ");
-                            if (jogoEncontradoNoBanco) {
-                                // console.log(jogoEncontradoNoBanco.getBundle());
-                                // console.log("Jogo montado com dados do banco: " + JSON.stringify(jogoEncontradoNoBanco));
                                 if (jogoEncontradoNoBanco.getBundle()) {
-                                    console.log("Identificado como bundle");
-                                    console.log("Imprimindo o primeiro jogo do bundle " + jogoEncontradoNoBanco.getJogos()[0]);
+                                    let progressoTotalBundle: number = 0;
+                                    let progressoBundle: number = 0;
+
+                                    let dificuldadeTotalBundle: number = 0;
+                                    let dificuldadeBundle: number = 0;
+
+                                    console.log("Jogo " + jogoEncontradoNoBanco.getNome() + " identificado como bundle fazendo atualizações de informações");
+
+                                    for (let i = 0; i < jogoEncontradoNoBanco.getJogos().length; i++) {
+                                        let jogoEncontradoNoBancoAtualizado = await this.includeUserInfoToJogo(todosJogosResponse, jogoEncontradoNoBanco.getJogos()[i].getNome(), jogoEncontradoNoBanco.getJogos()[i])
+
+                                        progressoTotalBundle += jogoEncontradoNoBancoAtualizado.getProgresso()
+                                        dificuldadeTotalBundle += jogoEncontradoNoBancoAtualizado.getDificuldade()
+
+
+                                        //plataforma é atualizada assim porque os dados do jogoEncontradoNoBanco não tem plataforma quando é bundle
+                                        //por conta de que alguns bundles possuem a plataforma como UNKNOW
+                                        //então eu pego qualquer plataforma do jogo atualizado que possui as informações do usuário
+                                        jogoEncontradoNoBanco.setPlataforma(jogoEncontradoNoBancoAtualizado.getPlataforma());
+                                        jogoEncontradoNoBanco.getJogos()[i] = jogoEncontradoNoBancoAtualizado;
+
+                                    }
+
+                                    progressoBundle = progressoTotalBundle / jogoEncontradoNoBanco.getJogos().length
+                                    dificuldadeBundle = dificuldadeTotalBundle / jogoEncontradoNoBanco.getJogos().length
+
+                                    jogoEncontradoNoBanco.setProgresso(progressoBundle);
+                                    jogoEncontradoNoBanco.setDificuldade(dificuldadeBundle);
+
+                                    jogosPlaylist.push(jogoEncontradoNoBanco);
+
+                                } else {
+                                    this.includeUserInfoToJogo(todosJogosResponse, nomeJogoRecente, jogoEncontradoNoBanco)
+                                    jogosPlaylist.push(jogoEncontradoNoBanco);
+
                                 }
-                                jogosPlaylist.push(jogoEncontradoNoBanco);
-                            } else {
-                                console.log("Não foi possivel montar o jogo com os dados do banco")
                             }
+                            console.log("Jogo " + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " encontrado no banco: ");
 
                         } else {
                             console.log("Não foi possivel encontrar o jogo " + jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name + " no banco")
@@ -158,135 +159,57 @@ class PlaylistService {
         }
     }
 
-    // async definirPlaylistsIniciais(): Promise<Playlist[] | undefined> {
-    //     try {
-    //         let playlists: Array<Playlist> = [];
-    //         let authorization = await AsyncStorage.getItem('authToken');
-    //         if (authorization) {
-    //             // se não tiver dados em cache, será criado novas playlists, que posteriormente serão enviadas ao banco
-    //             const categorias: string[] = ["Para platinar", "Platinados", "Jogados recentemente"];
-    //             let authToken = JSON.parse(authorization);
-    //             let jogosPlaylist: Jogo[] = [];
-    //             const jogadosRecentementeResponse = await this.jogoService.obterJogadosRecentemente(authToken);
+    async includeUserInfoToJogo(todosJogosResponse: UserTitlesResponse, nomeJogoRecente: string, jogoEncontradoNoBanco: Jogo): Promise<Jogo> {
+        console.log("Nome do jogo a ser procurado na lista completa: " + nomeJogoRecente)
+        // Filtra os jogos pelo nome exato ou parte do nome
+        const jogoEncontrado = todosJogosResponse.trophyTitles.find(
+            jogo => this.jogoService.organizarNomeJogo(
+                this.jogoService.limpaNomeJogo(
+                    this.jogoService.organizarNomeJogo(
+                        jogo.trophyTitleName.toLowerCase()
+                    ), false
+                )
+            )
+                ===
+                this.jogoService.organizarNomeJogo(
+                    this.jogoService.limpaNomeJogo(
+                        this.jogoService.organizarNomeJogo(
+                            nomeJogoRecente.toLowerCase()
+                        ), false
+                    )
+                )
+        );
 
-    //             if (jogadosRecentementeResponse) {
-    //                 for (let i = 0; i < jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games.length; i++) {
-    //                     // let existeNoBanco = await this.jogoRepository.verificarJogoExiste(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name);
+        if (jogoEncontrado) {
+            const userTrophyData = await this.trofeuService.obterTrofeusPeloNpwr(jogoEncontrado.npCommunicationId);
 
-    //                     // if (existeNoBanco) {
-    //                     //     console.log("Jogo "+jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name+" encontrado no banco: " );
-    //                     //     const jogo = await this.jogoRepository.obterJogoPorSerial(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].titleId)
-    //                     //     if (jogo) {
-    //                     //         console.log(jogo.getBundle());
-    //                     //         console.log("Jogo montado com dados do banco: " + JSON.stringify(jogo));
-    //                     //         if (jogo.getBundle()) {
-    //                     //             console.log("Identificado como bundle");
-    //                     //             console.log("Imprimindo o primeiro jogo do bundle " + jogo.getJogos()[0]);
-    //                     //         }
-    //                     //         jogosPlaylist.push(jogo);
-    //                     //     } else {
-    //                     //         console.log("Não foi possivel resgatar o jogo do banco")
-    //                     //     }
-    //                     // } else {
-    //                         const todosJogosResponse = await this.jogoService.obterTodosJogos(authToken);
-    //                         if (todosJogosResponse) {
+            // Aqui, 'setProgresso' agora recebe o progresso do jogo encontrado
+            jogoEncontradoNoBanco.setProgresso(jogoEncontrado.progress);
 
-    //                             let titleId = jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].titleId;
+            userTrophyData.map((trofeu, index) => (
+                //definindo novamente para atualizar a linguagem de acordo com o idioma do SO
+                jogoEncontradoNoBanco?.getTrofeus()[index].setNome(trofeu.getNome()),
+                jogoEncontradoNoBanco?.getTrofeus()[index].setDescricao(trofeu.getDescricao()),
 
-    //                             // Variavel jogosNpwr possui resgatados os valores NPWR na função obterNpwrJogos 
-    //                             // baseado no serialID do jogo listado, se retornar mais 1 valor, é bundle, pois cada npwr
-    //                             // pertence a um jogo diferente
-    //                             let jogosNpwr: string[] = await this.jogoService.obterNpwrJogos(titleId);
+                //definindo novamente para atualizar o progresso do usuário
+                jogoEncontradoNoBanco?.getTrofeus()[index].setConquistado(trofeu.getConquistado()),
+                jogoEncontradoNoBanco?.getTrofeus()[index].setDataConquistado(trofeu.getDataConquistado())
+            ))
 
-    //                             if (jogosNpwr.length > 1) {
-    //                                 const jogo = await this.jogoService.criarBundleComJogosComTrofeus(jogadosRecentementeResponse, todosJogosResponse, jogosNpwr, i, titleId);
-    //                                 if (jogo) {
-    //                                     jogosPlaylist.push(jogo);
-    //                                 } else {
-    //                                     console.error("deu algo errado na criação da classe jogoBundle");
-    //                                 }
+            //definindo plataforma
+            if (jogoEncontrado.trophyTitlePlatform.toLowerCase() != "unknown") {
+                jogoEncontradoNoBanco.setPlataforma(jogoEncontrado.trophyTitlePlatform);
+            } else {
+                jogoEncontradoNoBanco.setPlataforma("PSX");
+            }
+        } else {
+            // Caso o jogo não seja encontrado
+            console.log("Jogo não encontrado!");
+        }
 
-    //                             } else {
-    //                                 let cenarioCritico: boolean = false;
-
-    //                                 for (let c = 0; c < todosJogosResponse.totalItemCount; c++) {
-
-    //                                     //se for encontrado um jogo na lista completa com o mesmo id do jogo, será criado uma instancia
-    //                                     //do jogo para posteriormente inserir no banco
-    //                                     if (todosJogosResponse.trophyTitles[c].npCommunicationId.replace(/^NPWR(\d{5}).*/, 'NPWR-$1') == jogosNpwr[0]) {
-    //                                         console.log("Foi encontrado um jogo na sua lista de jogos completa que bate com o mesmo npwr encontrado no Serial Station");
-    //                                         // console.log("Comparando " + todosJogosResponse.trophyTitles[c].npCommunicationId.replace(/^NPWR(\d{5}).*/, 'NPWR-$1') + "Com o " + jogosNpwr)
-
-    //                                         const jogo = await this.jogoService.criarJogoComTrofeus(jogadosRecentementeResponse, jogosNpwr[0].replace('-', '') + '_00', i);
-    //                                         if (jogo) {
-    //                                             jogosPlaylist.push(jogo);
-    //                                         } else {
-    //                                             console.error("deu algo errado na criação da classe jogo");
-    //                                         }
-
-    //                                     } else if (jogosNpwr.length < 1) {
-
-    //                                         console.log("Não foi possivel resgatar o npwr pelo site Serial Station");
-
-    //                                         if (todosJogosResponse.trophyTitles[c].trophyTitleName.includes(jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name)) {
-
-    //                                             console.log("Encontrado um jogo");
-    //                                             let testeNpwr = todosJogosResponse.trophyTitles[c].npCommunicationId
-    //                                             //vou criar um jogo mesmo caso não tenha encontrado o NPWR, pois existem alguns jogos que não encontra mesmo
-    //                                             const jogo = await this.jogoService.criarJogoComTrofeus(jogadosRecentementeResponse, testeNpwr, i);
-
-    //                                             if (jogo) {
-    //                                                 console.log("Jogo criado:" + jogo);
-    //                                                 jogosPlaylist.push(jogo);
-    //                                             } else {
-    //                                                 console.error("deu algo errado na criação da classe jogo");
-    //                                             }
-
-    //                                         } else {
-    //                                             cenarioCritico = true;
-    //                                         }
-    //                                     }
-    //                                 }
-
-    //                                 if (cenarioCritico) {
-    //                                     console.log("Não foi encontrado o NPWR no Serial station e não foi encontrado nenhum jogo com o mesmo nome na lista de jogos completos do usuário ");
-    //                                     const jogo = await this.jogoService.criarJogoSemTrofeus(jogadosRecentementeResponse, i);
-
-    //                                     if (jogo) {
-    //                                         console.log("Jogo criado:" + jogo);
-    //                                         jogosPlaylist.push(jogo);
-    //                                     } else {
-    //                                         console.error("deu algo errado na criação da classe jogo");
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     // }
-    //                 }
-    //                 categorias.forEach(categoria => {
-    //                     const playlist = new Playlist(
-    //                         categoria,
-    //                         "Playstation",
-    //                         jogosPlaylist,
-    //                         1
-    //                     );
-    //                     playlists.push(playlist);
-    //                 });
-    //             }
-    //             return playlists;
-    //         }
-
-
-
-    //     } catch (error) {
-    //         console.error('Erro ao definir playlists:', error);
-    //     }
-    // }
-
-    async reorganizarPlaylist() {
+        return jogoEncontradoNoBanco;
     }
-    async abrirJogoDaPlaylist(idJogo: string) {
-    }
+
     async adicionarJogoNaPlaylist(idJogo: string) {
     }
     async removerJogoDaPlaylist(idJogo: string) {

@@ -58,6 +58,27 @@ const TrophyCardComponent: React.FC<TrophyCardComponentProps> = React.memo(({ tr
     let rarityLevel;
     let rarityIcon;
     let borderColor;
+    let formattedDate;
+    if (trofeu.conquistado) {
+        if (trofeu.dataConquistado) {
+            const date = new Date(trofeu.dataConquistado);
+
+            if (!isNaN(date.getTime())) {
+                // Formata a data manualmente
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês começa do zero
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+            } else {
+                formattedDate = "Data inválida"; // Mensagem padrão para datas inválidas
+            }
+        } else {
+            formattedDate = "Não disponível"; // Mensagem padrão se a data estiver ausente
+        }
+    }
 
     if (trofeu.tipo === 'bronze') {
         urlTrophyType = require('../../../assets/images/trofeu-bronze.png');
@@ -102,17 +123,26 @@ const TrophyCardComponent: React.FC<TrophyCardComponentProps> = React.memo(({ tr
 
         <View style={[styles.container, { height: heightContainer }, showGuide && styles.expandedContainer]} >
             <View style={styles.row}>
-                <TouchableOpacity
-                    onPress={toggleGuide}
-                    onLongPress={handleLongPress} // Adiciona o evento onLongPress
-                    style={[styles.imageBox, { backgroundColor: "#333335", borderColor: borderColor }]}
-                >
-                    {trofeu.conquistado || !trofeu.oculto || isRevealed ? (
-                        <Image source={{ uri: trofeu.iconeUrl }} style={styles.gameImage} />
-                    ) : (
-                        <Image source={require('../../../assets/images/cadeado.png')} style={styles.gameImageHidden} />
+                <View style={styles.imageBoxContainer}>
+                    <TouchableOpacity
+                        onPress={toggleGuide}
+                        onLongPress={handleLongPress} // Adiciona o evento onLongPress
+                        style={[styles.imageBox, { backgroundColor: "#333335", borderColor: borderColor }]}>
+
+                        {trofeu.conquistado || !trofeu.oculto || isRevealed ? (
+                            <Image source={{ uri: trofeu.iconeUrl }} style={styles.gameImage} />
+                        ) : (
+                            <Image source={require('../../../assets/images/cadeado.png')} style={styles.gameImageHidden} />
+                        )}
+
+                    </TouchableOpacity>
+
+                    {trofeu.conquistado && (
+                        <Text style={styles.smallText}>{formattedDate}</Text>
                     )}
-                </TouchableOpacity>
+                </View>
+
+
 
                 <View style={styles.detailBox}>
                     <View style={styles.titleBox}>
@@ -192,15 +222,24 @@ const styles = StyleSheet.create({
         width: "100%",
         margin: "auto",
     },
+    imageBoxContainer: {
+        width: 80,
+        alignSelf: "center",
+    },
+    smallText: {
+        color: '#CFCFCF',
+        fontSize: 9,
+        fontFamily: "Inter_400Regular",
+        paddingTop:5,
+    },
     imageBox: {
         height: 80,
-        width: 80,
+        width: "100%",
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 5,
         overflow: 'hidden',
         borderWidth: 2,
-        alignSelf: "center"
     },
     gameImage: {
         height: '100%',

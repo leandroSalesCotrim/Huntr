@@ -100,7 +100,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
                 ListEmptyComponent={
                     <Text>Playlist não carregada ou sem jogos correspondentes</Text>
                 }
-                ListFooterComponent={<View style={styles.preenchimento} />}
+                ListFooterComponent={<View style={{ height: 120 }} />}
                 initialNumToRender={4}  // Ajuste esse valor para otimizar o desempenho
                 maxToRenderPerBatch={3}
                 windowSize={3}
@@ -146,10 +146,6 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap', // Permite que os itens que não cabem na linha atual "quebrem" para a próxima
         flexDirection: 'row', // Alinha os itens horizontalmente
         justifyContent: "space-between"
-    },
-    preenchimento: {
-        width: "100%",
-        height: 120,
     },
     scrollTopButton: {
         position: 'absolute',
