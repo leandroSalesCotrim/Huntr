@@ -13,10 +13,11 @@ interface InicioComponentProps {
     titleText: string;
     openFilters: () => void;
     organizar: () => void; // Adicione esta nova prop
+    atualizarPlaylist: () => void;
     tela: string
 }
 
-const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilters, organizar, tela }) => {
+const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilters, organizar, tela, atualizarPlaylist }) => {
     const [fontsLoaded] = useFonts({
         Inter_400Regular,
         Inter_700Bold,
@@ -39,7 +40,7 @@ const InicioComponent: React.FC<InicioComponentProps> = ({ titleText, openFilter
                 <View style={styles.boxIcons}>
                     {tela != "trofeus" ? (
                         <>
-                            <TouchableOpacity >
+                            <TouchableOpacity onPress={atualizarPlaylist}>
                                 <Image source={require('../../../../assets/images/atualizar.png')} style={styles.icon} />
                             </TouchableOpacity>
 

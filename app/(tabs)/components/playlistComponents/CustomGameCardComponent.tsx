@@ -20,7 +20,6 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
     const onTextLayout = (e: any) => {
         const { width } = e.nativeEvent.layout;
         textWidth.current = width;
-        console.log(width > containerWidth.current);
         if (width > containerWidth.current) {
             setIsTextOverflowing(true);  // Se o texto for maior que o contêiner, ativar a animação
         } else {
@@ -83,7 +82,7 @@ const GameCardComponent: React.FC<GameCardComponentProps> = ({ jogo, openModal }
 
                 <TouchableOpacity style={styles.touchImageBox} onPress={() => openModal(jogo)}>
                     {jogo.getIconeUrl() ? (
-                        <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} />
+                        <Image source={{ uri: jogo.getIconeUrl() }} style={styles.gameImage} resizeMode='stretch'/>
                     ) : (
                         <Image source={require('../../../../assets/images/defaultGameImage.jpg')} style={styles.gameImage} />
                     )}

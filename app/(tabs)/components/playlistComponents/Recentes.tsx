@@ -12,9 +12,11 @@ import Jogo from '@/src/models/jogoModel';
 
 interface RecentesScreenProps {
     playlistRecente: Playlist;
+    moverJogo: (jogo: Jogo) => void; // Adicionado prop
+    atualizarPlaylist: () => void; // Adicionado prop
 }
 
-const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRecente }) => {
+const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRecente, moverJogo, atualizarPlaylist }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [filteredGames, setFilteredGames] = useState(playlistRecente.getJogos());
     const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -28,6 +30,10 @@ const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRece
             SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);
+
+    useEffect(() => {
+        setFilteredGames(playlistRecente.getJogos());
+    }, [playlistRecente]);
 
     if (!fontsLoaded) {
         return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
@@ -78,8 +84,10 @@ const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRece
                 titleText="Jogados recentemente"
                 openFilters={() => setFilterModalVisible(true)}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
+                atualizarPlaylist={atualizarPlaylist} // Função para recarregar playlists
                 tela={"padrao"}
             />
+
             <FlatList
                 ref={flatListRef}
                 style={styles.scrollView}
@@ -111,6 +119,7 @@ const RecentesScreen: React.FC<RecentesScreenProps> = React.memo(({ playlistRece
             <GameModalComponent
                 visible={gameModalVisible}
                 onClose={() => setGameModalVisible(false)}
+                moverJogo={moverJogo} // Passando a função para mover o jogo
                 jogo={selectedGame} // Passando o jogo selecionado para a modal
                 tela={"recentes"}
             />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, ActivityIndicator, Easing } from 'react-native';
 import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import { useFonts, Inter_400Regular, Inter_700Bold, } from '@expo-google-fonts/inter'
 import RecentesScreen from './playlistComponents/Recentes';
@@ -7,17 +7,15 @@ import ConcluidosScreen from './playlistComponents/Concluidos';
 import PlatinandoScreen from './playlistComponents/Platinando';
 import UsuarioController from '@/src/controllers/usuarioController';
 import Playlist from '@/src/models/playlistModel';
-import { SplashScreen } from 'expo-router';
+import Jogo from '@/src/models/jogoModel';
+import LoadingAnimation from './loadingAnimation';
 
 const { width } = Dimensions.get('window'); // Largura da tela
 const usuarioController = new UsuarioController();
 
 const Playlists = () => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-
-  const [playlistRecentes, setPlaylistRecentes] = useState<Playlist | null>(null);
-  const [playlistCacados, setPlaylistCacados] = useState<Playlist | null>(null);
-  const [playlistConcluidos, setPlaylistConcluidos] = useState<Playlist | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState(0); // Estado para controlar a aba ativa
   const translateX = new Animated.Value(0); // Para animar o movimento do swipe
@@ -25,32 +23,55 @@ const Playlists = () => {
     Inter_400Regular,
     Inter_700Bold,
   });
-  
+
   const carregarPlaylists = async () => {
     try {
-      const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
-      if (loadedPlaylists) {
-        setPlaylists(loadedPlaylists);
-        setPlaylistRecentes(loadedPlaylists[0]); // Seleciona a primeira playlist por padrão
-        setPlaylistCacados(loadedPlaylists[1]);
-        setPlaylistConcluidos(loadedPlaylists[2]);
-      } else {
-        console.log("playlist undefined");
+      if(!isLoading){
+        setIsLoading(true);
       }
+      const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
+      setPlaylists(loadedPlaylists || []);
     } catch (error) {
-      console.error("Erro ao carregar a playlist:", error);
+      console.error('Erro ao carregar a playlist:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]); 
-
-  useEffect(() => {
     carregarPlaylists();
-  }, []); 
+  }, []);
+
+
+  const removerJogoDaPlaylist = (
+    jogo: Jogo,
+    playlistDestinoIndex: number
+  ) => {
+    setPlaylists((prev) => {
+      const novasPlaylists = [...prev];
+      const playlistDestino = novasPlaylists[playlistDestinoIndex];
+
+      // Removendo o jogo à playlist de destino
+      playlistDestino.removeJogo(jogo);
+
+      return novasPlaylists;
+    });
+  };
+
+  const moverJogoParaOutraPlaylist = (
+    jogo: Jogo,
+    playlistDestinoIndex: number
+  ) => {
+    setPlaylists((prev) => {
+      const novasPlaylists = [...prev];
+      const playlistDestino = novasPlaylists[playlistDestinoIndex];
+
+      // Adicionar o jogo à playlist de destino
+      playlistDestino.pushJogo(jogo);
+
+      return novasPlaylists;
+    });
+  };
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#0000ff" />; // Ou outro indicador de carregamento
@@ -78,20 +99,37 @@ const Playlists = () => {
 
   // Função para renderizar o conteúdo da aba ativa
   const renderTabContent = () => {
-    if (playlistRecentes && playlistCacados && playlistConcluidos) {
+    if (isLoading) {
+      return <LoadingAnimation />;
+    }
+    if (playlists[0] && playlists[1] && playlists[2]) {
       switch (activeTab) {
         case 0:
-          return <PlatinandoScreen playlistCacados={playlistCacados} />;
+          return <PlatinandoScreen
+            playlistCacados={playlists[2]}
+            atualizarPlaylist={carregarPlaylists}
+             moverJogo={(jogo) => removerJogoDaPlaylist(jogo, 2)}
+          />;
         case 1:
-          return <RecentesScreen playlistRecente={playlistRecentes} />;
+          return <RecentesScreen
+            playlistRecente={playlists[0]}
+            atualizarPlaylist={carregarPlaylists}
+            moverJogo={(jogo) => moverJogoParaOutraPlaylist(jogo, 2)}
+          />
         case 2:
-          return <ConcluidosScreen playlistConcluidos={playlistConcluidos} />;
+          return <ConcluidosScreen
+            playlistConcluidos={playlists[1]}
+            atualizarPlaylist={carregarPlaylists}
+            moverJogo={(jogo) => undefined}//passando undefined pois não é possivel mover/remover jogos da playlist de jogos concluidos
+            />;
         default:
           return null;
       }
     }
     return null;
   };
+
+
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -167,6 +205,19 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     width: width * 3, // Multiplica por 3 para acomodar os 3 componentes
+  }, loadingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    width: '60%',
+    height: '20%',
+    backgroundColor: '#2C2F44',
+    borderRadius: 10,
+  },
+  symbol: {
+    fontSize: 32,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 

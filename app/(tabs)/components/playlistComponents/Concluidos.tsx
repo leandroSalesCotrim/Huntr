@@ -11,9 +11,11 @@ import Jogo from '@/src/models/jogoModel';
 
 interface ConcluidosScreenProps {
     playlistConcluidos: Playlist
+    moverJogo: (jogo: Jogo) => void; // Adicionado prop
+    atualizarPlaylist: () => void; // Adicionado prop
 }
 
-const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos }) => {
+const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos, moverJogo, atualizarPlaylist }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [filteredGames, setFilteredGames] = useState(playlistConcluidos.getJogos());
     const [modalVisible, setModalVisible] = useState(false);
@@ -78,6 +80,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
             <InicioComponent
                 titleText="Jogos platinados"
                 openFilters={() => setModalVisible(true)}
+                atualizarPlaylist={atualizarPlaylist}
                 organizar={inverterLista} // Passe a função de inverter para o componente InicioComponent
                 tela={"padrao"}
             />
@@ -115,6 +118,7 @@ const ConcluidosScreen: React.FC<ConcluidosScreenProps> = ({ playlistConcluidos 
             <GameModalComponent
                 visible={gameModalVisible}
                 onClose={() => setGameModalVisible(false)}
+                moverJogo={moverJogo} // Passando a função para mover o jogo
                 jogo={selectedGame} // Passando o jogo selecionado para a modal
                 tela={"concluidos"}
             />

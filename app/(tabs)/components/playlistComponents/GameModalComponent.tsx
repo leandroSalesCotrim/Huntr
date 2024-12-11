@@ -16,11 +16,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 interface GameModalComponentProps {
     visible: boolean;
     onClose: () => void;
+    moverJogo: (jogo: Jogo) => void;
     jogo: Jogo | null; // Jogo passado como prop
     tela: string; // nome da tela que será usada a modal
 }
 
-const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClose, jogo, tela }) => {
+const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClose, jogo, tela, moverJogo }) => {
     const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_700Bold });
     const [selectedGame, setSelectedGame] = useState<Jogo | null>(null);
     let textoBtns: string = "";
@@ -30,6 +31,10 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
         textoBtns = "Deseja adicionar este " + productType + " a sua lista para platinar?"
     } else if (tela == "platinando") {
         textoBtns = "Deseja remover este " + productType + " da sua caçada?"
+    }
+
+    if(jogo?.getProgresso() == 100){
+        textoBtns = "Este jogo já foi platinado!"
     }
 
     useEffect(() => {
@@ -44,6 +49,10 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
 
     if (!jogo) return null; // Se não houver jogo, não renderiza nada
 
+    const adicionarNaPlaylistHandle = () =>{
+        moverJogo(jogo)
+        onClose();
+    }
 
     const closeModal = () => {
         onClose();
@@ -51,7 +60,6 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
     };
 
     const handleGameCardPress = (jogo: Jogo) => {
-        console.log("Jogo selecionado:", jogo);
         setSelectedGame(jogo);
     };
 
@@ -94,7 +102,7 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
                     <Text style={styles.confirmText}>{textoBtns}</Text>
 
                     <View style={styles.boxBtnConfirmar}>
-                        {tela.includes("concluidos") || jogo.getBundle() ? (
+                        {tela.includes("concluidos") || jogo.getBundle() || jogo.getProgresso() == 100 ? (
                             <TouchableOpacity style={styles.btnConfirmar} onPress={closeModal}>
                                 <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
                                     <Circle cx="25" cy="25" r="24" fill="#1D1F2E" />
@@ -113,7 +121,7 @@ const GameModalComponent: React.FC<GameModalComponentProps> = ({ visible, onClos
                             </TouchableOpacity>
                         ) : (
                             <>
-                                <TouchableOpacity style={styles.btnConfirmar}>
+                                <TouchableOpacity style={styles.btnConfirmar} onPress={adicionarNaPlaylistHandle}>
                                     <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
                                         <G clipPath="url(#clip0_65_3058)">
                                             <Circle cx="25" cy="25" r="24" fill="#1C1F2A" stroke="#8290BA" strokeWidth="2" />

@@ -39,8 +39,19 @@ class Playlist {
     setJogo(jogo: Jogo,pos:number): void {
         this.jogos[pos] = jogo;
     }
-    setJogos(jogo: Jogo): void {
-        this.jogos.push(jogo);
+    pushJogo(jogo: Jogo): void {
+        const index = this.jogos.findIndex(j => j.getNome() === jogo.getNome());
+        if (index !== -1) {
+            console.log("Não é possível adicionar um jogo repetido na playlist");
+        } else {
+            this.jogos.push(jogo);
+        }
+    }
+    removeJogo(jogo: Jogo): void {
+        const index = this.jogos.findIndex(j => j === jogo);
+        if (index !== -1) {
+            this.jogos.splice(index, 1); // Remove o jogo no índice encontrado
+        }
     }
     setIdUsuario(idUsuario: number): void {
         this.idUsuario = idUsuario;

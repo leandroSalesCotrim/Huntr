@@ -6,7 +6,6 @@ import JogoRepository from '../repository/jogoRepository';
 // import { meuScript } from '../../scripts/popular_dados';
 import TrofeuService from './trofeuService';
 import { UserTitlesResponse } from 'psn-api';
-import Trofeu from '../models/trofeuModel';
 
 
 class PlaylistService {
@@ -56,11 +55,13 @@ class PlaylistService {
             let playlists: Array<Playlist> = [];
             let authorization = await AsyncStorage.getItem('authToken');
             if (authorization) {
-                // se não tiver dados em cache, será criado novas playlists, que posteriormente serão enviadas ao banco
-                const categorias: string[] = ["Para platinar", "Platinados", "Jogados recentemente"];
+                // se não tiver dados em cache, será criado novas playlists, que posteriormente devem ser enviadas ao banco
                 let executarScript = false;
                 let authToken = JSON.parse(authorization);
-                let jogosPlaylist: Jogo[] = [];
+
+                let jogosRecentesPlaylist: Jogo[] = [];
+                let jogosPlatinadosPlaylist: Jogo[] = [];
+
                 const jogadosRecentementeResponse = await this.jogoService.obterJogadosRecentemente(authToken);
 
                 if (jogadosRecentementeResponse) {
@@ -113,6 +114,10 @@ class PlaylistService {
                                         jogoEncontradoNoBanco.setPlataforma(jogoEncontradoNoBancoAtualizado.getPlataforma());
                                         jogoEncontradoNoBanco.getJogos()[i] = jogoEncontradoNoBancoAtualizado;
 
+                                        if (jogoEncontradoNoBancoAtualizado.getTrofeus()[0].getTipo() == "platinum" && jogoEncontradoNoBancoAtualizado.getTrofeus()[0].getConquistado()) {
+                                            jogosPlatinadosPlaylist.push(jogoEncontradoNoBancoAtualizado)
+                                        }
+
                                     }
 
                                     progressoBundle = progressoTotalBundle / jogoEncontradoNoBanco.getJogos().length
@@ -121,11 +126,14 @@ class PlaylistService {
                                     jogoEncontradoNoBanco.setProgresso(progressoBundle);
                                     jogoEncontradoNoBanco.setDificuldade(dificuldadeBundle);
 
-                                    jogosPlaylist.push(jogoEncontradoNoBanco);
+                                    jogosRecentesPlaylist.push(jogoEncontradoNoBanco);
 
                                 } else {
                                     this.includeUserInfoToJogo(todosJogosResponse, nomeJogoRecente, jogoEncontradoNoBanco)
-                                    jogosPlaylist.push(jogoEncontradoNoBanco);
+                                    if (jogoEncontradoNoBanco.getTrofeus()[0].getTipo() == "platinum" && jogoEncontradoNoBanco.getTrofeus()[0].getConquistado()) {
+                                        jogosPlatinadosPlaylist.push(jogoEncontradoNoBanco)
+                                    }
+                                    jogosRecentesPlaylist.push(jogoEncontradoNoBanco);
 
                                 }
                             }
@@ -142,15 +150,37 @@ class PlaylistService {
                 //     await this.executarScript();
                 // }
 
-                categorias.forEach(categoria => {
-                    const playlist = new Playlist(
-                        categoria,
-                        "Playstation",
-                        jogosPlaylist,
-                        1
-                    );
-                    playlists.push(playlist);
-                });
+                const playlistJogosRecentes = new Playlist(
+                    "Jogados recentemente",
+                    "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                    jogosRecentesPlaylist,
+                    1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+                );
+                const playlistJogosConcluidos = new Playlist(
+                    "Concluidos",
+                    "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                    jogosPlatinadosPlaylist,
+                    1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+                );
+                const playlistJogosPlatinando = new Playlist(
+                    "Platinando",
+                    "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                    [],
+                    1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+                );
+                playlists.push(playlistJogosRecentes);
+                playlists.push(playlistJogosConcluidos);
+                playlists.push(playlistJogosPlatinando);
+
+                // categorias.forEach(categoria => {
+                //     const playlist = new Playlist(
+                //         categoria,
+                //         "Playstation",
+                //         jogosPlaylist,
+                //         1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+                //     );
+                //     playlists.push(playlist);
+                // });
             }
             return playlists;
 
