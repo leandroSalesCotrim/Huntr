@@ -1,8 +1,8 @@
 // HomeScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Image, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import WavesBackground from './components/WavesBackground';
-import { Link, SplashScreen } from 'expo-router';
+import { SplashScreen } from 'expo-router';
 import {
   useFonts,
   Inter_400Regular,
@@ -10,6 +10,11 @@ import {
 } from '@expo-google-fonts/inter'
 import { getLocales, getCalendars } from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../NavigationTypes';
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, '(tabs)/index'>;
 
 // Previne a tela de splash de desaparecer automaticamente
 SplashScreen.preventAutoHideAsync();
@@ -19,6 +24,7 @@ const HomeScreen: React.FC = () => {
     Inter_400Regular,
     Inter_700Bold,
   });
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
   useEffect(() => {
     const checkLanguageTag = async () => {
@@ -31,7 +37,7 @@ const HomeScreen: React.FC = () => {
           await AsyncStorage.setItem('languageTag', currentLanguageTag);
         } else {
           console.log('LanguageTag armazenada:', storedLanguageTag);
-          
+
         }
       } catch (error) {
         console.error('Erro ao acessar AsyncStorage:', error);
@@ -67,22 +73,22 @@ const HomeScreen: React.FC = () => {
 
         <View style={styles.containerBtns}>
 
-          <TouchableOpacity style={styles.btn} onPress={() => console.log('Botão pressionado')}>
-            <Link href="/login" style={styles.btnText}>
+          <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('(tabs)/login')}>
+            <Text style={styles.btnText}>
               Entrar com minha conta
-            </Link>
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btn} onPress={() => console.log('Botão 1 pressionado')}>
-            <Link href="/cadastro" style={styles.btnText}>
+          <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('(tabs)/cadastro')}>
+            <Text style={styles.btnText}>
               Criar uma nova conta
-            </Link>
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btn} >
-            <Link href="/teste" style={styles.btnText}>
+          <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('(tabs)/teste')}>
+            <Text style={styles.btnText}>
               Entrar como convidado
-            </Link>
+            </Text>
           </TouchableOpacity>
 
         </View>

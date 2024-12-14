@@ -166,6 +166,42 @@ class Jogo {
         this.tags = tags;
     }
 
+    // toJSON(): object {
+    //     return {
+    //         idJogo: this.idJogo,
+    //         npwr: this.npwr,
+    //         serialJogo: this.serialJogo,
+    //         nome: this.nome,
+    //         progresso: this.progresso,
+    //         tags: this.tags,
+    //         trofeus: this.trofeus.map(t => t.toJSON()),
+    //         iconeUrl: this.iconeUrl,
+    //         guiaUrl: this.guiaUrl,
+    //         plataforma: this.plataforma,
+    //         bundle: this.bundle,
+    //         jogos: this.jogos.map(j => j.toJSON()),
+    //         dificuldade: this.dificuldade,
+    //         tempoParaPlatinar: this.tempoParaPlatinar,
+    //     };
+    // }
+
+    // static fromJSON(data: any): Jogo {
+    //     return new Jogo(
+    //         data.nome,
+    //         data.plataforma,
+    //         data.tempoParaPlatinar,
+    //         data.tags,
+    //         data.iconeUrl,
+    //         data.bundle,
+    //         data.serialJogo,
+    //         data.jogos?.map((j: any) => Jogo.fromJSON(j)),
+    //         data.guiaUrl,
+    //         data.dificuldade,
+    //         data.progresso,
+    //         data.npwr
+    //     );
+    // }
+
 
 
 }

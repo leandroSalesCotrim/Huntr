@@ -18,29 +18,19 @@ class PlaylistService {
         this.jogoRepository = new JogoRepository();
     }
 
-    async listarPlaylists(): Promise<Playlist[] | null> {
+    async verificarPlaylistsEmCache(): Promise<Playlist[] | undefined> {
         try {
-            let playlists: Array<Playlist> = [];
-            const playlistsJSON = await AsyncStorage.getItem('playlists');
-            if (playlistsJSON) {
-                //primeiro verifica no cache se existe alguma playlist definida
-                const parsedArray = JSON.parse(playlistsJSON);
-                // Certifique-se de que o vetor contém objetos Playlist
-                playlists = parsedArray.map((item: any) =>
-                    new Playlist(
-                        item.categoria,
-                        item.plataforma,
-                        item.jogos,
-                        item.idUsuario
-                    )
-                );
-                console.log("Foi encontrado uma playlist em cache")
-                return playlists;
+            const playlistsJSON = await AsyncStorage.getItem('userPlaylists');
+            if (playlistsJSON && playlistsJSON !== '[]') {
+                console.log("Teste 3 verificarPlaylistsEmCache:")
+                return await this.montarPlaylistsComJSON(playlistsJSON);
             }
             //depois verifica se existe alguma playlist no banco
             //então caso nada retorne, retorn undefined
             console.log("Não foi encontrado nenhuma playlist em cache")
-            return null;
+            console.log("limpando cache")
+            await AsyncStorage.removeItem('userPlaylists');
+            return undefined;
         } catch (error) {
             console.error("Deu algo errado ao tentar listar as playlists " + error)
             throw error;
@@ -52,6 +42,10 @@ class PlaylistService {
     // };
     async definirPlaylistsIniciais(): Promise<Playlist[] | undefined> {
         try {
+            let playlistProgress = 0;
+            // Inicializa o progresso no AsyncStorage
+            await AsyncStorage.setItem('playlistProgress', '0');
+
             let playlists: Array<Playlist> = [];
             let authorization = await AsyncStorage.getItem('authToken');
             if (authorization) {
@@ -65,7 +59,9 @@ class PlaylistService {
                 const jogadosRecentementeResponse = await this.jogoService.obterJogadosRecentemente(authToken);
 
                 if (jogadosRecentementeResponse) {
-                    for (let i = 0; i < jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games.length; i++) {
+                    const totalJogos = jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games.length;
+
+                    for (let i = 0; i < totalJogos; i++) {
                         let nomeJogoRecente = jogadosRecentementeResponse.data.gameLibraryTitlesRetrieve.games[i].name;
                         let jogoEncontradoNoBanco = await this.jogoRepository.buscarJogoPorNome(
                             this.jogoService.organizarNomeJogo(
@@ -74,6 +70,10 @@ class PlaylistService {
                                 )
                             )
                         );
+
+                        // Verificando o progresso a cada iteração
+                        playlistProgress = i;
+                        await AsyncStorage.setItem('playlistProgress', playlistProgress.toString());
 
                         //caso jogo não for encontrado no banco pode ser por conta de alguns caracteres especiais ou por ser bundle
                         //então tenta procurar o jogo novamente como bundle true
@@ -126,10 +126,11 @@ class PlaylistService {
                                     jogoEncontradoNoBanco.setProgresso(progressoBundle);
                                     jogoEncontradoNoBanco.setDificuldade(dificuldadeBundle);
 
-                                    jogosRecentesPlaylist.push(jogoEncontradoNoBanco);
 
+                                    jogosRecentesPlaylist.push(jogoEncontradoNoBanco);
                                 } else {
-                                    this.includeUserInfoToJogo(todosJogosResponse, nomeJogoRecente, jogoEncontradoNoBanco)
+
+                                    await this.includeUserInfoToJogo(todosJogosResponse, nomeJogoRecente, jogoEncontradoNoBanco)
                                     if (jogoEncontradoNoBanco.getTrofeus()[0].getTipo() == "platinum" && jogoEncontradoNoBanco.getTrofeus()[0].getConquistado()) {
                                         jogosPlatinadosPlaylist.push(jogoEncontradoNoBanco)
                                     }
@@ -182,6 +183,8 @@ class PlaylistService {
                 //     playlists.push(playlist);
                 // });
             }
+            // Finalizando o progresso
+            await AsyncStorage.setItem('playlistProgress', '15');
             return playlists;
 
         } catch (error) {
@@ -240,6 +243,56 @@ class PlaylistService {
         return jogoEncontradoNoBanco;
     }
 
+    async montarPlaylistsComJSON(playlist: any) {
+        try {
+            let playlists: Array<Playlist> = [];
+            let jogosRecentesPlaylist: Jogo[] = [];
+            let jogosPlatinadosPlaylist: Jogo[] = [];
+
+            JSON.parse(playlist)[0].jogos.forEach(async (jogoJSON: any) => {
+                const jogo = await this.jogoService.montarJogoComTrofeusPorJSON(jogoJSON);
+                if (jogo instanceof Jogo) {
+                    jogosRecentesPlaylist.push(jogo);
+                }
+            });
+
+            JSON.parse(playlist)[1].jogos.forEach(async (jogoJSON: any) => {
+                const jogo = await this.jogoService.montarJogoComTrofeusPorJSON(jogoJSON);
+                if (jogo instanceof Jogo) {
+                    jogosPlatinadosPlaylist.push(jogo);
+                }
+            });
+
+            const playlistJogosRecentes = new Playlist(
+                "Jogados recentemente",
+                "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                jogosRecentesPlaylist,
+                1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+            );
+            const playlistJogosConcluidos = new Playlist(
+                "Concluidos",
+                "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                jogosPlatinadosPlaylist,
+                1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+            );
+            const playlistJogosPlatinando = new Playlist(
+                "Platinando",
+                "Playstation",//não sei se vai ter mais utilidade mas aqui era pra separar caso fosse listar playlist de outras plataformas como xbox ou steam
+                [],
+                1// id usuário, não sei se vai ser utilizado mais pois estou pensando em remover o cadastro de usuário
+            );
+            playlists.push(playlistJogosRecentes);
+            playlists.push(playlistJogosConcluidos);
+            playlists.push(playlistJogosPlatinando);
+
+            return playlists;
+        } catch (error) {
+            console.error("Deu algo errado ao tentar montar as playlists com o JSON " + error)
+            throw error;
+        }
+
+
+    }
     async adicionarJogoNaPlaylist(idJogo: string) {
     }
     async removerJogoDaPlaylist(idJogo: string) {

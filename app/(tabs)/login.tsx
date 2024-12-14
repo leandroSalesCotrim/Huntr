@@ -23,8 +23,6 @@ const HomeScreen: React.FC = () => {
   });
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
-
-
   // Usar useEffect para ocultar a splash screen quando as fontes terminarem de carregar
   useEffect(() => {
     if (fontsLoaded) {
@@ -42,14 +40,16 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('(tabs)/dashboard');
 
   };
-  
+
   return (
 
     <View style={styles.container}>
       <WavesBackground />
+
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.btnVoltar}>
-        <Image source={require('../../assets/images/botao-x.png')} style={styles.imgBtnVoltar}/>
+        <Image source={require('../../assets/images/botao-x.png')} style={styles.imgBtnVoltar} />
       </TouchableOpacity>
+
       <Image source={require('../../assets/images/HunTr_logo2.png')} style={styles.logo} />
 
       <View style={styles.containerLogin}>
@@ -65,9 +65,8 @@ const HomeScreen: React.FC = () => {
               Realizar login
             </Text>
           </TouchableOpacity>
+
         </View>
-
-
 
       </View>
     </View>

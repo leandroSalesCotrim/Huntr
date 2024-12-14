@@ -120,5 +120,39 @@ class Trofeu {
     }
 
 
+    toJSON(): object {
+        return {
+            idTrofeu: this.idTrofeu,
+            nome: this.nome,
+            descricao: this.descricao,
+            guia: this.guia,
+            tipo: this.tipo,
+            oculto: this.oculto,
+            conquistado: this.conquistado,
+            dataConquistado: this.dataConquistado?.toISOString() || null,
+            taxaConquistado: this.taxaConquistado,
+            raridade: this.raridade,
+            iconeUrl: this.iconeUrl,
+            tags: this.tags,
+        };
+    }
+
+    static fromJSON(data: any): Trofeu {
+        return new Trofeu(
+            data.idTrofeu,
+            data.nome,
+            data.descricao,
+            data.guia,
+            data.tipo,
+            data.oculto,
+            data.iconeUrl,
+            data.tags,
+            data.conquistado,
+            data.dataConquistado,
+            data.taxaConquistado,
+            data.raridade
+        );
+    }
+
 }
 export default Trofeu;

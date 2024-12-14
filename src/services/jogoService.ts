@@ -280,7 +280,7 @@ class JogoService {
     async obterJogadosRecentemente(authToken: any): Promise<RecentlyPlayedGamesResponse | undefined> {
         try {
             const response = await getRecentlyPlayedGames(authToken, {
-                limit: 10,
+                limit: 15,
                 categories: ["ps4_game", "ps5_native_game"]
             });
             // console.log("Exibindo jogados recentemente" + JSON.stringify(response));
@@ -435,6 +435,41 @@ class JogoService {
             await this.jogoRepository.inserirBundleNoBanco(bundle);
 
             return bundle;
+
+        } catch (error) {
+            console.error(error);
+            return undefined;
+        }
+
+
+    }
+
+    async montarJogoComTrofeusPorJSON(
+        jogoJSON: any,
+    ): Promise<Jogo | undefined> {
+        try {
+            //precisa ser definido antes os trofeús do jogo para poder preencher corretamente a classe jogo
+            let trofeus = await this.trofeuService.montarTrofeusPorJSON(jogoJSON.trofeus);
+            let tags: string [] = [];
+            jogoJSON.tags.forEach((tag: string) => {
+                tags.push(tag)
+            });
+
+            const jogo = new Jogo(
+                jogoJSON.nome,//string
+                jogoJSON.plataforma,//string
+                Number(jogoJSON.tempoParaPlatinar),//number
+                tags,//string[]
+                jogoJSON.iconeUrl,//string
+                jogoJSON.bundle,//boolean
+                jogoJSON.serialJogo,//string
+                trofeus,
+                jogoJSON.guiaUrl,//string
+                Number(jogoJSON.dificuldade),//number
+                Number(jogoJSON.progresso),//number
+                jogoJSON.npwr,//string
+            );
+            return jogo;
 
         } catch (error) {
             console.error(error);

@@ -30,28 +30,37 @@ class UsuarioController {
     }
   }
 
-
-
   async criarNovasPlaylistUsuario(): Promise<Playlist[] | undefined> {
-    if (await this.playlistService.listarPlaylists() == null) {
-      //vou burlar a validação de token para testes mas deveria ser verificado de alguma forma
-      await this.usuarioService.validarToken();
-      let authorization = await AsyncStorage.getItem('authToken');
+    try {
+      let playlists: Playlist[] | undefined = await this.playlistService.verificarPlaylistsEmCache();
+      
+      if (playlists == undefined) {
+        //vou burlar a validação de token para testes mas deveria ser verificado de alguma forma
+        await this.usuarioService.validarToken();
+        let authorization = await AsyncStorage.getItem('authToken');
 
-      // if (!authorization) {
-      //   console.log("Não tinha nada definido de token no cache");
-      //   await this.usuarioService.obterPsnAuthorization("INSERIR TOKEN AQUI");
-      //   authorization = await AsyncStorage.getItem('authToken');
-      // }
+        if (!authorization) {
+          console.log("Não tinha nada definido de token no cache");
+          await this.usuarioService.obterPsnAuthorization("INSERIR TOKEN AQUI");
+          authorization = await AsyncStorage.getItem('authToken');
+        }
 
-      if (authorization) {
-        // let authToken = JSON.parse(authorization);
-        return this.playlistService.definirPlaylistsIniciais();
+        if (authorization) {
+          // let authToken = JSON.parse(authorization);
+          const playlistsIniciais = this.playlistService.definirPlaylistsIniciais();
+          return playlistsIniciais;
 
-      } else {
-        console.log("authorization não deu certo " + authorization)
-      }
+        } else {
+          console.log("authorization não deu certo " + authorization)
+        }
+      } 
+      console.log("criarNovasPlaylistUsuario retornando playlist em cache")
+      return playlists;
+
+    } catch (error) {
+      console.error('Erro na criarNovasPlaylistUsuario:', error);
     }
+
   }
 
   async atualizarToken() {

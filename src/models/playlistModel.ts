@@ -57,6 +57,31 @@ class Playlist {
         this.idUsuario = idUsuario;
     }
 
+    // toJSON(): object {
+    //     console.log("teste toJSON")
+    //     console.log("toJSON de playlist chamado: "+
+    //         this.idPlaylist,
+    //         this.categoria,
+    //         this.plataforma,
+    //         this.jogos.map(j => j.toJSON()),
+    //         this.idUsuario,
+    //     )
+    //     return {
+    //         idPlaylist: this.idPlaylist,
+    //         categoria: this.categoria,
+    //         plataforma: this.plataforma,
+    //         jogos: this.jogos.map(j => j.toJSON()),
+    //         idUsuario: this.idUsuario,
+    //     };
+    // }
+
+    // static fromJSON(data: any): Playlist {
+    //     console.log("fromJSON Playlist valores : "+ data);
+    //     const playlist = new Playlist(data.categoria, data.plataforma, data.jogos.map((j: any) => Jogo.fromJSON(j)), data.idUsuario);
+    //     playlist.idPlaylist = data.idPlaylist;
+    //     return playlist;
+    // }
+
 
 }
 export default Playlist;

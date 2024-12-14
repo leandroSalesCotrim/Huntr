@@ -8,7 +8,11 @@ const symbols = [
     require('../../../assets/images/loadingAnimation/square.png'),
 ];
 
-const LoadingAnimation = () => {
+interface LoadingAnimationProps {
+
+}
+
+const LoadingAnimation: React.FC<LoadingAnimationProps> = ({  }) => {
     const [animations] = useState([
         new Animated.Value(0),
         new Animated.Value(0),
@@ -85,13 +89,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: 250,
         height: 250,
-        marginHorizontal: "auto",
-        alignSelf: 'center',
-        marginBottom:50
+       
     },
     symbol: {
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
+        marginHorizontal:10,
         marginBottom: 20, // Espaçamento entre linhas
     },
 });

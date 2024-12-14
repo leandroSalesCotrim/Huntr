@@ -9,6 +9,8 @@ import UsuarioController from '@/src/controllers/usuarioController';
 import Playlist from '@/src/models/playlistModel';
 import Jogo from '@/src/models/jogoModel';
 import LoadingAnimation from './loadingAnimation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PlaylistProgressComponent from './playlistProgress';
 
 const { width } = Dimensions.get('window'); // Largura da tela
 const usuarioController = new UsuarioController();
@@ -17,6 +19,8 @@ const Playlists = () => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  let playlistsCache: Playlist[] = [];
+
   const [activeTab, setActiveTab] = useState(0); // Estado para controlar a aba ativa
   const translateX = new Animated.Value(0); // Para animar o movimento do swipe
   const [fontsLoaded] = useFonts({
@@ -24,13 +28,35 @@ const Playlists = () => {
     Inter_700Bold,
   });
 
-  const carregarPlaylists = async () => {
+  const [progresso, setProgresso] = useState<number>(0);
+  const [progressoPorcentagem, setProgressoPorcentagem] = useState<number>(0);
+
+  const buscarProgresso = async () => {
     try {
-      if(!isLoading){
-        setIsLoading(true);
+      const progressoQtdString = await AsyncStorage.getItem('playlistProgress');
+      let progressoPorcentagem;
+
+      progressoPorcentagem = Math.floor(((Number(progressoQtdString)) / 15) * 100);
+      setProgressoPorcentagem(progressoPorcentagem);
+      if (progressoQtdString) {
+        setProgresso(Number(progressoQtdString));
       }
+    } catch (error) {
+      console.error('Erro ao buscar progresso:', error);
+    }
+  };
+
+  const carregarPlaylists = async () => {
+    setIsLoading(true);
+    await AsyncStorage.setItem('playlistProgress', '0');
+    await buscarProgresso(); // Chama a função para buscar o progresso
+    try {
       const loadedPlaylists = await usuarioController.criarNovasPlaylistUsuario();
       setPlaylists(loadedPlaylists || []);
+      if (loadedPlaylists) {
+        playlistsCache = loadedPlaylists;
+        await AsyncStorage.setItem('userPlaylists', JSON.stringify(playlistsCache));
+      }
     } catch (error) {
       console.error('Erro ao carregar a playlist:', error);
     } finally {
@@ -41,6 +67,16 @@ const Playlists = () => {
   useEffect(() => {
     carregarPlaylists();
   }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      // Caso queira chamar buscarProgresso periodicamente enquanto estiver carregando
+      const intervalo = setInterval(() => {
+        buscarProgresso();
+      }, 1000);
+      return () => clearInterval(intervalo); // Limpa o intervalo ao desmontar ou quando o carregamento terminar
+    }
+  }, [isLoading]); // O intervalo é setado somente quando isLoading é verdadeiro
 
 
   const removerJogoDaPlaylist = (
@@ -100,7 +136,12 @@ const Playlists = () => {
   // Função para renderizar o conteúdo da aba ativa
   const renderTabContent = () => {
     if (isLoading) {
-      return <LoadingAnimation />;
+      return (
+        <View style={styles.loadingContainer}>
+          <LoadingAnimation />
+          <PlaylistProgressComponent progresso={progressoPorcentagem} numJogoPlaylist={progresso} />
+        </View>
+      );
     }
     if (playlists[0] && playlists[1] && playlists[2]) {
       switch (activeTab) {
@@ -108,7 +149,7 @@ const Playlists = () => {
           return <PlatinandoScreen
             playlistCacados={playlists[2]}
             atualizarPlaylist={carregarPlaylists}
-             moverJogo={(jogo) => removerJogoDaPlaylist(jogo, 2)}
+            moverJogo={(jogo) => removerJogoDaPlaylist(jogo, 2)}
           />;
         case 1:
           return <RecentesScreen
@@ -121,7 +162,7 @@ const Playlists = () => {
             playlistConcluidos={playlists[1]}
             atualizarPlaylist={carregarPlaylists}
             moverJogo={(jogo) => undefined}//passando undefined pois não é possivel mover/remover jogos da playlist de jogos concluidos
-            />;
+          />;
         default:
           return null;
       }
@@ -205,14 +246,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     width: width * 3, // Multiplica por 3 para acomodar os 3 componentes
-  }, loadingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    width: '60%',
-    height: '20%',
-    backgroundColor: '#2C2F44',
-    borderRadius: 10,
+    width: 250,
+    height: 250,
+    marginHorizontal: "auto",
+    alignSelf: 'center',
+    marginBottom: 50,
   },
   symbol: {
     fontSize: 32,
